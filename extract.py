@@ -36,7 +36,7 @@ def displayAccountConfiguration(login, password, f):
         displayItem('#all', account_infos, tree['items'], f)
 
     except Exception as ex:
-        f.write(account_infos + '\terror\t' + str(ex) + '\n')
+        f.write(account_infos + 'error:' + str(ex) + '\n')
 
 accounts=[]
 
@@ -62,7 +62,7 @@ else:
     print("usage: python extract.py <accounts_file.csv>")
     print("       python extract.py <account_login> <account_password>")
 
-f = open('configurations.csv', 'w+', encoding="utf-8")
+f = open('ub_configurations.csv', 'w+', encoding="utf-8")
 
 for account in accounts:
     print('get configuration for ' + account['login'] + ' | ' + account['password'] + '...')
