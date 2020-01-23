@@ -1,2 +1,3 @@
-files/*.csv
-merge.csv
+__pycache__
+accounts.csv
+configurations.csv
