@@ -1,3 +1,5 @@
 __pycache__
-/accounts.csv
-/ub_configurations.csv
+/*.csv
+/ubermetrics.pkl
+/configurations
+
