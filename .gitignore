@@ -2,4 +2,5 @@ __pycache__
 /*.csv
 /ubermetrics.pkl
 /configurations
-
+/archives
+/extract_newsletters

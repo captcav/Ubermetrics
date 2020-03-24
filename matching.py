@@ -30,13 +30,13 @@ def search_config(customerName, feedName, tree):
     return None
 
 def match_feeds(tree, f):
-    with open('monitor.csv', encoding="utf-8") as csv_file:
+    with open('monitor_feeds.csv', encoding="utf-8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter='\t')
         next(csv_reader) #escape header
         for row in csv_reader:
-            file = row[1]
-            customer = row[2]
-            feedId = row[0]
+            file = row[0]
+            customer = row[1]
+            feedId = row[2]
             feedName = row[3]
             t = search_config(customer, feedName, tree)
             if t is not None:

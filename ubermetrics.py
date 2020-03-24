@@ -36,6 +36,17 @@ def build_tree(node, items, login, password):
     else:
         return Tree(node, None, login, password)
 
+def print_node(node, f, str = ''):
+    if str == '':
+        str = '(' + node.login + ', ' + node.password + ')'
+    else:
+        str = str + ' -> ' + '(' + node.name + ', ' + node.type + ', ' + node.label + ')'
+    print(str)
+    f.write(str + '\n')
+    if node.children is not None:
+        for child in node.children:
+            print_node(child, f, str)
+
 def dump_all():
     root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
     with open('accounts.csv', encoding="utf-8") as csv_file:
@@ -54,17 +65,6 @@ def dump_all():
     pickle.dump(root, afile)
     afile.close()
 
-def print_node(node, f, str = ''):
-    if str == '':
-        str = '(' + node.login + ', ' + node.password + ')'
-    else:
-        str = str + ' -> ' + '(' + node.name + ', ' + node.type + ', ' + node.label + ')'
-    print(str)
-    f.write(str + '\n')
-    if node.children is not None:
-        for child in node.children:
-            print_node(child, f, str)
-
 def print_all():
     f = open(r'ubermetrics.pkl', 'rb')
     tree = pickle.load(f)
@@ -79,6 +79,7 @@ try:
     action = sys.argv[1]
     if action == '-d' or action == '-dump':
         dump_all()
+        print_all()
     elif action == '-p' or action == '-print':
         print_all()
     else:
