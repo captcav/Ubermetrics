@@ -30,7 +30,7 @@ def search_config(customerName, feedName, tree):
     return None
 
 def match_feeds(tree, f):
-    with open('monitor_feeds.csv', encoding="utf-8") as csv_file:
+    with open('json_feeds.csv', encoding="utf-8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter='\t')
         next(csv_reader) #escape header
         for row in csv_reader:
