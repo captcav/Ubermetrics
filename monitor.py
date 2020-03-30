@@ -89,7 +89,6 @@ def dump_newsletters(rootFolder):
     csv_inactive.write(default_headers + '\t msg \n')
 
     for filePath in json_paths:
-        print('open ' + filePath + ' ...')
         with open(filePath) as json_file:
             data = json.load(json_file)
             for item in data:

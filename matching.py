@@ -34,21 +34,27 @@ def match_feeds(tree, f):
         csv_reader = csv.reader(csv_file, delimiter='\t')
         next(csv_reader) #escape header
         for row in csv_reader:
-            file = row[0]
-            customer = row[1]
-            feedId = row[2]
-            feedName = row[3]
-            t = search_config(customer, feedName, tree)
+            #filePath	customer_id	customer_name	feed_id	feed_name	feed_property	feed_key	feed_format	feed_link
+            file_path=row[0]
+            customer_id=row[1]
+            customer_name=row[2]
+            feed_id=row[3]
+            feed_name=row[4]
+            feed_property=row[5]
+            feed_key=row[6]
+            feed_format=row[7]
+            feed_link=row[8]
+            t = search_config(customer_name, feed_name, tree)
             if t is not None:
-                line = feedId + '\t' + file + '\t' + customer + '\t' + feedName + '\t' + t.login + '\t' + t.password + '\t' + t.name + '\t' + t.label + '\t' + t.type
+                line = feed_id + '\t' + file_path + '\t' + customer_id + '\t' + customer_name + '\t' + feed_name + '\t' + t.login + '\t' + t.password + '\t' + t.name + '\t' + t.label + '\t' + t.type
                 print(line)
                 f.write(line + '\n')
             else:
-                f.write(feedId + '\t' + file + '\t' + customer + '\t' + feedName + '\t\t\t\t\t\n')
+                f.write(feed_id + '\t' + file_path + '\t' + customer_id + '\t' + customer_name + '\t' + feed_name + '\t\t\t\t\t\n')
 
 def match_all(tree):
     f = open('matching.csv', 'w+', encoding="utf-8")
-    f.write('json_feedId' + '\t' + 'json_filepath' + '\t' + 'json_customer' + '\t' + 'json_feedName' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
+    f.write('json_feedId' + '\t' + 'json_filepath' + '\t' + 'json_customer_id' + '\t' + 'json_customer_name' + '\t' + 'json_feedName' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
     match_feeds(tree, f)
     f.close()
 
