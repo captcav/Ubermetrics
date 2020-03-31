@@ -47,9 +47,9 @@ def print_node(node, f, str = ''):
         for child in node.children:
             print_node(child, f, str)
 
-def dump_all():
+def dump_all(accounts_csv):
     root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
-    with open('accounts.csv', encoding="utf-8") as csv_file:
+    with open(accounts_csv, encoding="utf-8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter='\t')
         print('building configuration...')
         for row in csv_reader:
@@ -78,12 +78,13 @@ def print_all():
 try:
     action = sys.argv[1]
     if action == '-d' or action == '-dump':
-        dump_all()
+        dump_all('accounts.csv')
         print_all()
     elif action == '-p' or action == '-print':
         print_all()
     else:
         raise Exception("action undefined: " + action) 
 except Exception as ex:
+    print(ex)
     print("usage: python ubermetrics.py -d[ump]")
     print("       python ubermetrics.py -p[rint]")

@@ -63,7 +63,7 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv, csv_in
             line += '\t' + str(len(v['list']))
         else:
             line += '\t'
-        line += '\t' + joinProps('list', v, '|')
+        line += '\t' + joinProps('list', v, ';')
 
         if 'feeds' not in v:
             csv_inactive.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t FEED_NOT_FOUND' + '\n')
