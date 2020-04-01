@@ -170,26 +170,43 @@ def match_feeds(feeds, searches, f):
             feed.ub_label = match.label
             feed.ub_type = match.type
 
-def do_matching(monitor_file_path, ub_login, ub_password):
-    print('# Monitor : "' + monitor_file_path + '" <-> Ubermetrics account : "' + ub_login + '"')
+def do_matching(monitor_file_path, ub_credentials):
+    print('# Monitor to Ubermetrics : "' + monitor_file_path)
     print('----> extracting Monitor feeds from "' + monitor_file_path + '"...')
     feeds = extract_monitor_feeds(monitor_file_path)
 
-    print('----> requesting Ubermetrics searches for (' + ub_login + ', ' + ub_password + ')...')
     searches = None
-    try:
-        searches = dump_ubermetrics_searches(ub_login, ub_password)
-        #print_node(searches)
-    except Exception as ex:
-        print('----> error : ' + str(ex))
-    
-    print('----> matching Monitor file "' + monitor_file_path + '" with Ubermetrics searches from "' + ub_login + '"...')
+    if type(ub_credentials) == tuple:
+        ub_login = ub_credentials[0]
+        ub_password = ub_credentials[1]
+        print('----> requesting Ubermetrics searches for (' + ub_login + ', ' + ub_password + ')...')
+        try:
+            searches = dump_ubermetrics_searches(ub_login, ub_password)
+        except Exception as ex:
+            print('----> error : ' + str(ex))
+    elif type(ub_credentials) == list:
+        searches = Tree({"name":"root", "label":"root","type":"root"}, children=None)
+        for credentials in ub_credentials:
+            ub_login = credentials[0]
+            ub_password = credentials[1]
+            print('----> requesting Ubermetrics searches for (' + ub_login + ', ' + ub_password + ')...')
+            try:
+                search = dump_ubermetrics_searches(ub_login, ub_password)
+                if search is not None:
+                    searches.add_child(search)
+            except Exception as ex:
+                print('----> error : ' + str(ex))
+    else:
+        print('----> error : unsupported argument for credentials : ' + str(type(ub_credentials)))
+
+    #print_node(searches)
+    print('----> matching Monitor with Ubermetrics searches...')
     match_feeds(feeds, searches, None) 
 
     return feeds
 
-def print_matchings(monitor_file_path, ub_login, ub_password):
-    feeds = do_matching(monitor_file_path, ub_login, ub_password)
+def print_matchings(monitor_file_path, ub_credentials):
+    feeds = do_matching(monitor_file_path, ub_credentials)
     for feed in feeds:
         print(str(feed))
 
@@ -197,59 +214,57 @@ def get_folder_name(path):
     parts = path.split('/')
     return parts[len(parts)-1]
 
-def write_matchings_internal(monitor_file_path, ub_login, ub_password, f):
+def write_matchings_internal(monitor_file_path, ub_credentials, f):
     monitor_folder_name = get_folder_name(monitor_file_path)
-    feeds = do_matching(monitor_file_path, ub_login, ub_password)
+    feeds = do_matching(monitor_file_path, ub_credentials)
     for feed in feeds:
         f.write(monitor_folder_name + '\t' + str(feed) + '\n')
 
 def write_matchings(configs):
-    matching_file_path = 'matchings.csv'
+    results_file_name = 'matchings/matchings.all.csv'
     if len(configs) == 1:
         monitor_folder_name = get_folder_name(configs[0][0])
-        matching_file_path = 'matching_' + monitor_folder_name + '.csv'
+        results_file_name = 'matchings/matchings.' + monitor_folder_name + '.csv'
     
-    f = open(matching_file_path, 'w+', encoding="utf-8")
+    f = open(results_file_name, 'w+', encoding="utf-8")
     f.write('folder_name' + '\t' + 'json_file_path' + '\t' + 'json_customer_id' + '\t' + 'json_customer_name' + '\t' + 'json_feed_id' + '\t' +  'json_feed_name' + '\t' + 'json_feed_property' + '\t' + 'json_feed_key' + '\t' + 'json_feed_format' + '\t' + 'json_feed_link' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
     for config in configs:
         monitor_file_path = config[0]
-        ub_login = config[1]
-        ub_password = config[2]
-        write_matchings_internal(monitor_file_path, ub_login, ub_password, f)
-        print('----> saving results in ' + matching_file_path + '...')
+        ub_credentials = config[1]
+        write_matchings_internal(monitor_file_path, ub_credentials, f)
+        print('----> saving results in ' + results_file_name + '...')
     f.close()
 
 configs = [
-    ("./json/fixv5.2/admirabilia", "Admirabilia-Augure","augure20"),
-    ("./json/fixv5.2/almirall", "Almirall-Augure","augure20"),
-    ("./json/fixv5.2/amalthea", "Amalthea-Augure", "augure20"),
-    ("./json/fixv5.2/anniebonnie", "Anniebonnie-Augure", "augure20"),
-    ("./json/fixv5.2/artelier", "Artelier-Augure", "augure20"),
-    ("./json/fixv5.2/berbes", "Berbes-Augure", "augure20"),
-    ("./json/fixv5.2/bluwom", "Bluwom-Augure", "augure20"), 
-    ("./json/fixv5.2/bradek", "Bradek-Augure", "augure20"),
-    ("./json/fixv5.2/bursonmarstelleremea", "BursonEmea-Augure", "augure20"),
-    ("./json/fixv5.2/comfi", "Comfi-Augure", "augure20"),
-    ("./json/fixv5.2/comunicacionibero", "Comunicacionibero-Augure", "augure20"),
-    ("./json/fixv5.2/crc", "CRC-Augure", "augure20"),
-    ("./json/fixv5.2/deva", "Deva-Augure", "augure20"),
-    ("./json/fixv5.2/europapress", "Europapress-Augure", "augure20"),
-    ("./json/fixv5.2/evercom", "Evercom-Augure", "augure20"),
-    ("./json/fixv5.2/gaiacomunicacion", "Gaiacomunicacion-Augure", "augure20"),  
-    ("./json/fixv5.2/havaspr", "Havas-Augure", "augure20"),
-    ("./json/fixv5.2/interfacespain", "Interfacespain-Augure", "augure20"),
-    ("./json/fixv5.2/keima", "Keima-Augure", "augure20"),
-    ("./json/fixv5.2/lewis", "Lewis-Augure", "augure20"),
-    ("./json/fixv5.2/littlewing", "Littlewing-Augure", "augure20"),
-    ("./json/fixv5.2/marco", "Marco-Augure", "augure20"),
-    ("./json/fixv5.2/onecomunicacion", "Onecomunicacion-Augure", "augure20"),
-    ("./json/fixv5.2/prisma", "Prisma-Augure", "augure20"),
-    ("./json/fixv5.2/spencerlewis", "Spencerlewis-Augure", "augure20"),
-    ("./json/fixv5.2/theoria", "Theoria-Augure", "augure20"),
-    ("./json/fixv5.2/torresycarrera", "Torresycarrera-Augure", "augure20"),
-    ("./json/fixv5.2/finalCustomer", "Spain-Augure", "augure20"),
-    ("./json/fixv5.2/finalCustomer", "France-Augure", "augure20")
-] 
+	("./json/fixv5.2/admirabilia",("Admirabilia-Augure","augure20")),
+	("./json/fixv5.2/almirall", ("","augure20")),
+	("./json/fixv5.2/amalthea", ("Amalthea-Augure","augure20")),
+	("./json/fixv5.2/anniebonnie", ("Anniebonnie-Augure","augure20")),
+	("./json/fixv5.2/artelier", ("Artelier-Augure","augure20")),
+	("./json/fixv5.2/berbes", ("Berbes-Augure","augure20")),
+	("./json/fixv5.2/bluwom", ("Bluwom-Augure","augure20")),
+	("./json/fixv5.2/bradek", ("Bradek-Augure","augure20")),
+	("./json/fixv5.2/bursonmarstelleremea", ("BursonEmea-Augure","augure20")),
+	("./json/fixv5.2/comfi", ("Comfi-Augure","augure20")),
+	("./json/fixv5.2/comunicacionibero", ("Comunicacionibero-Augure","augure20")),
+	("./json/fixv5.2/crc", ("CRC-Augure","augure20")),
+	("./json/fixv5.2/deva", ("Deva-Augure","augure20")),
+	("./json/fixv5.2/europapress", ("","augure20")),
+	("./json/fixv5.2/evercom", ("Evercom-Augure","augure20")),
+	("./json/fixv5.2/finalCustomer", [("France-Augure", "augure20"), ("Spain-Augure","augure20")]),
+	("./json/fixv5.2/gaiacomunicacion", ("Gaiacomunicacion-Augure","augure20")),
+	("./json/fixv5.2/havaspr", ("Havas-Augure","augure20")),
+	("./json/fixv5.2/interfacespain", ("","augure20")),
+	("./json/fixv5.2/keima", ("Keima-Augure","augure20")),
+	("./json/fixv5.2/lewis", ("Lewis-Augure","augure20")),
+	("./json/fixv5.2/littlewing", ("Littlewing-Augure","augure20")),
+	("./json/fixv5.2/marco", ("Marco-Augure","augure20")),
+	("./json/fixv5.2/onecomunicacion", ("Onecomunicacion-Augure","augure20")),
+	("./json/fixv5.2/prisma", ("Prisma-Augure","augure20")),
+	("./json/fixv5.2/spencerlewis", ("Spencerlewis-Augure","augure20")),
+	("./json/fixv5.2/theoria", ("Theoria-Augure","augure20")),
+	("./json/fixv5.2/torresycarrera", ("Torresycarrera-Augure","augure20"))
+]
 
 #monitor_file_path = 
 #ub_login = 
@@ -262,6 +277,11 @@ configs = [
 #configs=[("./json/fixv5.2/almirall", "Spain-Augure","augure20")]
 #configs = [("./json/fixv5.2/havaspr", "Havas-Augure", "augure20")]
 #configs = [("./json/fixv5.2/finalCustomer", "Spain-Augure", "augure20")]
-#configs = [("./json/fixv5.2/finalCustomer", "France-Augure", "augure20")]
+#configs = [("./json/fixv5.2/finalCustomer", ("France-Augure", "augure20"))]
+#configs = [("./json/fixv5.2/finalCustomer", [("Spain-Augure", "augure20"), ("France-Augure", "augure20")])]
+
+#type(data) == list:
+#print(type(configs[0][0]))
+#print(str(type(configs[0][1])))
 write_matchings(configs)
 
