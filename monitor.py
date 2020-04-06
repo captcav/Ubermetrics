@@ -90,7 +90,13 @@ def dump_newsletters(rootFolder):
 
     for filePath in json_paths:
         with open(filePath) as json_file:
-            data = json.load(json_file)
+            try:
+                data = json.load(json_file)
+                print(filePath + ': OK')
+            except Exception as ex:
+                print(filePath + ': ' + str(ex))
+                continue
+            
             for item in data:
                 if 'module' in item:
                     module =item['module']
@@ -108,7 +114,13 @@ def dump_feeds(rootFolder):
     csv.write('filePath\tcustomer_id\tcustomer_name\tfeed_id\tfeed_name\tfeed_property\tfeed_key\tfeed_format\tfeed_link\n')
     for filePath in json_paths:
         with open(filePath) as json_file:
-            data = json.load(json_file)
+            try:
+                data = json.load(json_file)
+                print(filePath + ': OK')
+            except Exception as ex:
+                print(filePath + ': ' + str(ex))
+                continue
+            
             idCustomer=''
             nameCustomer=''
             for item in data: 

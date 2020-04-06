@@ -115,7 +115,13 @@ def extract_monitor_feeds(folder_path):
     json_paths = getJsonFilePaths(folder_path)
     for filePath in json_paths:
         with open(filePath) as json_file:
-            data = json.load(json_file)
+            data = None
+            try:
+                data = json.load(json_file)
+            except Exception as ex:
+                print('----> error : ' + filePath + ' -> ' + str(ex))
+                continue
+            
             idCustomer=''
             nameCustomer=''
             for item in data: 
@@ -236,51 +242,33 @@ def write_matchings(configs):
     f.close()
 
 configs = [
-	("./json/fixv5.2/admirabilia",("Admirabilia-Augure","augure20")),
-	("./json/fixv5.2/almirall", ("","augure20")),
-	("./json/fixv5.2/amalthea", ("Amalthea-Augure","augure20")),
-	("./json/fixv5.2/anniebonnie", ("Anniebonnie-Augure","augure20")),
-	("./json/fixv5.2/artelier", ("Artelier-Augure","augure20")),
-	("./json/fixv5.2/berbes", ("Berbes-Augure","augure20")),
-	("./json/fixv5.2/bluwom", ("Bluwom-Augure","augure20")),
-	("./json/fixv5.2/bradek", ("Bradek-Augure","augure20")),
-	("./json/fixv5.2/bursonmarstelleremea", ("BursonEmea-Augure","augure20")),
-	("./json/fixv5.2/comfi", ("Comfi-Augure","augure20")),
-	("./json/fixv5.2/comunicacionibero", ("Comunicacionibero-Augure","augure20")),
-	("./json/fixv5.2/crc", ("CRC-Augure","augure20")),
-	("./json/fixv5.2/deva", ("Deva-Augure","augure20")),
-	("./json/fixv5.2/europapress", ("","augure20")),
-	("./json/fixv5.2/evercom", ("Evercom-Augure","augure20")),
-	("./json/fixv5.2/finalCustomer", [("France-Augure", "augure20"), ("Spain-Augure","augure20")]),
-	("./json/fixv5.2/gaiacomunicacion", ("Gaiacomunicacion-Augure","augure20")),
-	("./json/fixv5.2/havaspr", ("Havas-Augure","augure20")),
-	("./json/fixv5.2/interfacespain", ("","augure20")),
-	("./json/fixv5.2/keima", ("Keima-Augure","augure20")),
-	("./json/fixv5.2/lewis", ("Lewis-Augure","augure20")),
-	("./json/fixv5.2/littlewing", ("Littlewing-Augure","augure20")),
-	("./json/fixv5.2/marco", ("Marco-Augure","augure20")),
-	("./json/fixv5.2/onecomunicacion", ("Onecomunicacion-Augure","augure20")),
-	("./json/fixv5.2/prisma", ("Prisma-Augure","augure20")),
-	("./json/fixv5.2/spencerlewis", ("Spencerlewis-Augure","augure20")),
-	("./json/fixv5.2/theoria", ("Theoria-Augure","augure20")),
-	("./json/fixv5.2/torresycarrera", ("Torresycarrera-Augure","augure20"))
+	("./json/fixv6.0/admirabilia",("Admirabilia-Augure","augure20")),
+	("./json/fixv6.0/almirall", ("","augure20")),
+	("./json/fixv6.0/amalthea", ("Amalthea-Augure","augure20")),
+	("./json/fixv6.0/anniebonnie", ("Anniebonnie-Augure","augure20")),
+	("./json/fixv6.0/artelier", ("Artelier-Augure","augure20")),
+	("./json/fixv6.0/berbes", ("Berbes-Augure","augure20")),
+	("./json/fixv6.0/bluwom", ("Bluwom-Augure","augure20")),
+	("./json/fixv6.0/bradek", ("Bradek-Augure","augure20")),
+	("./json/fixv6.0/bursonmarstelleremea", ("BursonEmea-Augure","augure20")),
+	("./json/fixv6.0/comunicacionibero", ("Comunicacionibero-Augure","augure20")),
+	("./json/fixv6.0/crc", ("CRC-Augure","augure20")),
+	("./json/fixv6.0/deva", ("Deva-Augure","augure20")),
+	("./json/fixv6.0/europapress", ("","augure20")),
+	("./json/fixv6.0/evercom", ("Evercom-Augure","augure20")),
+	("./json/fixv6.0/finalCustomers", [("France-Augure", "augure20"), ("Spain-Augure","augure20")]),
+	("./json/fixv6.0/gaiacomunicacion", ("Gaiacomunicacion-Augure","augure20")),
+	("./json/fixv6.0/havaspr", ("Havas-Augure","augure20")),
+	("./json/fixv6.0/keima", ("Keima-Augure","augure20")),
+	("./json/fixv6.0/lewis", ("Lewis-Augure","augure20")),
+	("./json/fixv6.0/littlewing", ("Littlewing-Augure","augure20")),
+	("./json/fixv6.0/marco", ("Marco-Augure","augure20")),
+	("./json/fixv6.0/onecomunicacion", ("Onecomunicacion-Augure","augure20")),
+	("./json/fixv6.0/prisma", ("Prisma-Augure","augure20")),
+	("./json/fixv6.0/theoria", ("Theoria-Augure","augure20")),
+	("./json/fixv6.0/torresycarrera", ("Torresycarrera-Augure","augure20"))
 ]
 
-#monitor_file_path = 
-#ub_login = 
-#ub_password = 
-#configs = [(monitor_file_path, ub_login, ub_password)]
-#configs = [("./json/fixv5.2/interfacespain", "Interfacespain-Augure", "augure20")] 
-#configs = [ ("./json/fixv5.2/amalthea", "Amalthea-Augure", "augure20")]
-#configs = [("./json/fixv5.2/interfacespain", "Interfacespain-Augure", "augure20")]
-#configs=[("./json/fixv5.2/almirall", "Almirall-Augure","augure20")]
-#configs=[("./json/fixv5.2/almirall", "Spain-Augure","augure20")]
-#configs = [("./json/fixv5.2/havaspr", "Havas-Augure", "augure20")]
-#configs = [("./json/fixv5.2/finalCustomer", "Spain-Augure", "augure20")]
-#configs = [("./json/fixv5.2/finalCustomer", ("France-Augure", "augure20"))]
-#configs = [("./json/fixv5.2/finalCustomer", [("Spain-Augure", "augure20"), ("France-Augure", "augure20")])]
-
-#type(data) == list:
 #print(type(configs[0][0]))
 #print(str(type(configs[0][1])))
 write_matchings(configs)
