@@ -2,7 +2,8 @@
 import json
 import urllib.parse
 import urllib.request
-import hashlib 
+import hashlib
+import os
 
 def request_api(params):
     url = 'https://api.ubermetrics-technologies.com'
@@ -60,3 +61,31 @@ def get_search_tree(options):
         "prop_identifier": tree['identifier'],
         "items": tree['items']
     }
+
+def get_accounts(folder, isAPI, isFlat): 
+    accounts = []
+    password_account = 'augure20'
+    france_account = 'France-Augure-API' if isAPI else 'France-Augure'
+    spain_account = 'Spain-Augure-API' if isAPI else 'Spain-Augure'
+    for f in os.scandir(folder):
+        if f.is_dir():
+            filepath = os.path.join(folder, f.name)
+            if isFlat:
+                if f.name == 'finalCustomers':
+                    accounts.append((filepath, (france_account, 'augure20')))
+                    accounts.append((filepath, (spain_account, 'augure20')))
+                else:
+                    name_account = f.name.capitalize()
+                    login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
+                    accounts.append((filepath, (login_account, password_account)))
+            else:
+                if f.name == 'finalCustomers':
+                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")]))
+                else:
+                    name_account = f.name.capitalize()
+                    login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
+                    accounts.append((filepath, (login_account,password_account)))
+        else:
+            print(f.name + ' is not supported')
+
+    return accounts

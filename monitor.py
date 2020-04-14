@@ -1,7 +1,6 @@
 # coding=utf-8
 import sys 
 import os
-import csv
 import json
 
 def getJsonFilePaths(folder):   
@@ -79,9 +78,8 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv, csv_in
                 feedLine += '\t' + getProp('num_mentions', va)
                 csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t' + feedLine + '\n')
 
-def dump_newsletters(rootFolder):
-    json_paths = getJsonFilePaths(rootFolder)
-    
+def dump_newsletters(json_paths):
+    print('extracting newsletters from JSON files csv...')
     default_headers = 'file_path \t idCustomer \t name_customer \t newsletter_id \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list \t newsletter_list'
     csv = open('json_newsletters.csv', 'w+', encoding="utf-8")
     csv.write(default_headers + '\t feed_id \t feed_valuation_to_show \t feed_order_by \t feed_ selection \t feed_grouping \t feed_feedName \t feed_num_mentions \n')
@@ -107,9 +105,8 @@ def dump_newsletters(rootFolder):
                         dump_newsletter(filePath,idCustomer, nameCustomer, newsletters, csv, csv_inactive)
     csv.close()
 
-def dump_feeds(rootFolder):
-    json_paths = getJsonFilePaths(rootFolder)
-    
+def dump_feeds(json_paths):
+    print('extracting feeds from JSON files csv...')
     csv = open('json_feeds.csv', 'w+', encoding="utf-8")
     csv.write('filePath\tcustomer_id\tcustomer_name\tfeed_id\tfeed_name\tfeed_property\tfeed_key\tfeed_format\tfeed_link\n')
     for filePath in json_paths:
@@ -141,27 +138,25 @@ def dump_feeds(rootFolder):
     csv.close()
 
 try:
-    action = sys.argv[1]
-    if action == 'newsletters':
-        if len(sys.argv) >2:
-            rootFolder = sys.argv[2]
-            debug = False
-            dump_newsletters(rootFolder)
-        else:
-            raise Exception("missing argument")
-    elif action == 'feeds':
-        if len(sys.argv) >2:
-            rootFolder = sys.argv[2]
-            dump_feeds(rootFolder)
-        else:
-            raise Exception("missing argument")
+    if len(sys.argv) < 3:
+        raise Exception('missing argument')
+    
+    json_paths = getJsonFilePaths(sys.argv[2])
 
+    if sys.argv[1] == 'newsletters':
+        dump_newsletters(json_paths)
+    elif sys.argv[1] == 'feeds':
+        dump_feeds(json_paths)
+    elif sys.argv[1] == 'both':
+        dump_feeds(json_paths)
+        dump_newsletters(json_paths)
     else:
-        raise Exception("action undefined: " + action) 
+        raise Exception("action undefined: " + sys.argv[1]) 
 except Exception as ex:
     print(ex)
     print("usage: python monitor.py feeds <path_to_folder>")
     print("       python monitor.py newsletters <path_to_folder>")
+    print("       python monitor.py both <path_to_folder>")
 
 
 
