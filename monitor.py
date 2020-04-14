@@ -2,67 +2,34 @@
 import sys 
 import os
 import json
-
-def getJsonFilePaths(folder):   
-    paths = [] 
-    files_and_folders = [f for f in os.scandir(folder)]
-    for f in files_and_folders:
-        if f.is_dir():
-            d = os.path.join(folder, f.name)
-            filenames = os.listdir(d)
-            for filename in filenames:
-                paths.append(os.path.join(d, filename))
-        else:
-            paths.append(os.path.join(folder, f.name))
-    
-    return paths
-
-def joinProps(property, obj, sep):
-    if property in obj:
-        values = obj[property]
-        if values is None: 
-            return ''
-        else:
-            return sep.join(values)
-    else:
-        return ''
-
-def getProp(property, obj):
-    if property in obj:
-        value = obj[property]
-        if value is None: 
-            return ''
-        else:
-            return value
-    else:
-        return ''
+import api
 
 def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv, csv_inactive): 
     for (k, v) in newsletters.items():
         line = k 
-        line += '\t' + getProp('design_format', v)
-        line += '\t' + getProp('design_title', v)
-        line += '\t' + getProp('logoUrl', v)
-        line += '\t' + getProp('primaryColor', v)
-        line += '\t' + getProp('hour', v)
-        line += '\t' + getProp('min', v)
-        line += '\t' + getProp('hour2', v)
-        line += '\t' + getProp('min2', v)
-        line += '\t' + getProp('valuation_to_show', v)
-        line += '\t' + getProp('order_by', v)
-        line += '\t' + getProp('grouping', v)
-        line += '\t' + getProp('num_mentions', v)
-        line += '\t' + getProp('email', v)
-        line += '\t' + getProp('selection', v)
-        line += '\t' + getProp('name_remitent', v)
-        line += '\t' + getProp('charset', v)
-        line += '\t' + getProp('type', v)
-        line += '\t' + joinProps('days', v, '|')
+        line += '\t' + api.get_prop('design_format', v)
+        line += '\t' + api.get_prop('design_title', v)
+        line += '\t' + api.get_prop('logoUrl', v)
+        line += '\t' + api.get_prop('primaryColor', v)
+        line += '\t' + api.get_prop('hour', v)
+        line += '\t' + api.get_prop('min', v)
+        line += '\t' + api.get_prop('hour2', v)
+        line += '\t' + api.get_prop('min2', v)
+        line += '\t' + api.get_prop('valuation_to_show', v)
+        line += '\t' + api.get_prop('order_by', v)
+        line += '\t' + api.get_prop('grouping', v)
+        line += '\t' + api.get_prop('num_mentions', v)
+        line += '\t' + api.get_prop('email', v)
+        line += '\t' + api.get_prop('selection', v)
+        line += '\t' + api.get_prop('name_remitent', v)
+        line += '\t' + api.get_prop('charset', v)
+        line += '\t' + api.get_prop('type', v)
+        line += '\t' + api.join_prop('days', v, '|')
         if 'list' in v:
             line += '\t' + str(len(v['list']))
         else:
             line += '\t'
-        line += '\t' + joinProps('list', v, ';')
+        line += '\t' + api.join_prop('list', v, ';')
 
         if 'feeds' not in v:
             csv_inactive.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t FEED_NOT_FOUND' + '\n')
@@ -70,12 +37,12 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv, csv_in
             feeds = v['feeds']
             for (ke, va) in feeds.items():
                 feedLine = ke   
-                feedLine += '\t' + getProp('valuation_to_show', va)
-                feedLine += '\t' + getProp('order_by', va)
-                feedLine += '\t' + getProp('selection', va)
-                feedLine += '\t' + getProp('grouping', va)                
-                feedLine += '\t' + getProp('feedName', va)                
-                feedLine += '\t' + getProp('num_mentions', va)
+                feedLine += '\t' + api.get_prop('valuation_to_show', va)
+                feedLine += '\t' + api.get_prop('order_by', va)
+                feedLine += '\t' + api.get_prop('selection', va)
+                feedLine += '\t' + api.get_prop('grouping', va)                
+                feedLine += '\t' + api.get_prop('feedName', va)                
+                feedLine += '\t' + api.get_prop('num_mentions', va)
                 csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t' + feedLine + '\n')
 
 def dump_newsletters(json_paths):
@@ -100,8 +67,8 @@ def dump_newsletters(json_paths):
                     module =item['module']
                     if 'newsletter' in module:
                         newsletters = module['newsletter']
-                        nameCustomer = getProp('nameCustomer', item)
-                        idCustomer = getProp('idCustomer', item)
+                        nameCustomer = api.get_prop('nameCustomer', item)
+                        idCustomer = api.get_prop('idCustomer', item)
                         dump_newsletter(filePath,idCustomer, nameCustomer, newsletters, csv, csv_inactive)
     csv.close()
 
@@ -122,8 +89,8 @@ def dump_feeds(json_paths):
             nameCustomer=''
             for item in data: 
                 if 'nameCustomer' in item:
-                    idCustomer = getProp('idCustomer', item)
-                    nameCustomer = getProp('nameCustomer', item)
+                    idCustomer = api.get_prop('idCustomer', item)
+                    nameCustomer = api.get_prop('nameCustomer', item)
                 elif 'feedID' in item:
                     if 'publications' in item:
                         publications = item['publications']
@@ -141,7 +108,7 @@ try:
     if len(sys.argv) < 3:
         raise Exception('missing argument')
     
-    json_paths = getJsonFilePaths(sys.argv[2])
+    json_paths = api.get_JSON_filepaths(sys.argv[2])
 
     if sys.argv[1] == 'newsletters':
         dump_newsletters(json_paths)
@@ -157,7 +124,3 @@ except Exception as ex:
     print("usage: python monitor.py feeds <path_to_folder>")
     print("       python monitor.py newsletters <path_to_folder>")
     print("       python monitor.py both <path_to_folder>")
-
-
-
-

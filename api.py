@@ -89,3 +89,38 @@ def get_accounts(folder, isAPI, isFlat):
             print(f.name + ' is not supported')
 
     return accounts
+
+def get_JSON_filepaths(folder):   
+    paths = [] 
+    files_and_folders = [f for f in os.scandir(folder)]
+    for f in files_and_folders:
+        if f.is_dir():
+            d = os.path.join(folder, f.name)
+            filenames = os.listdir(d)
+            for filename in filenames:
+                paths.append(os.path.join(d, filename))
+        else:
+            paths.append(os.path.join(folder, f.name))
+    
+    return paths
+
+def get_prop(property, obj):
+    if property in obj:
+        value = obj[property]
+        if value is None: 
+            return ''
+        else:
+            return value
+    else:
+        return ''
+
+def join_prop(property, obj, sep):
+    if property in obj:
+        values = obj[property]
+        if values is None: 
+            return ''
+        else:
+            return sep.join(values)
+    else:
+        return ''
+        
