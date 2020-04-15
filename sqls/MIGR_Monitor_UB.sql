@@ -4,6 +4,8 @@ DECLARE @next_integration_parameter as nvarchar(10) = (SELECT CAST(DATEDIFF(SECO
 DECLARE @schedule_start_date as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/factory'
 DECLARE @sql as nvarchar(max) = ''
+DECLARE @counter_done as int = 0
+DECLARE @counter_not_done as int = 0
 
 PRINT 'USE Factory'
 PRINT 'BEGIN TRAN' 
@@ -23,12 +25,18 @@ BEGIN
 	SET @sql = @sql + 'INSERT INTO [dbo].[PROVIDER] ([Provider_Name],[ProviderFTP],[ProviderFTPUser],[ProviderFTPPassword],[Provider_Mode],[Provider_Status],[Provider_Type],[Provider_Transform_Filename],[IsFileDeleted],[DownloadLimitInDays],[IsDedicatedWatcherNeeded]) '
     SET @sql = @sql + 'VALUES ('''+ @provider_name + ''',''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',NULL,1,''REST'',''UBERMETRICS'',0,0,0);'
 
+	SET @counter_done = @counter_done + 1
 	PRINT @sql
 
 	FETCH NEXT FROM account_cursor INTO @provider_name, @ub_login, @ub_password
 END 
 CLOSE account_cursor
 DEALLOCATE account_cursor
+PRINT ''
+PRINT '------------------------------------------------------------'
+PRINT '-- INFO - ' + CAST(@counter_done as nvarchar(10)) + ' new providers created'
+PRINT '------------------------------------------------------------'
+PRINT ''
 
 -- CREATE CUSTOMERS --
 DECLARE @factory_customer_id as nvarchar(255)
@@ -58,6 +66,8 @@ PRINT 'IF NOT EXISTS (select * from dbo.sysobjects where id = object_id(N''[dbo]
 PRINT 'CREATE TABLE dbo.[ub_new_schedules] ([schedule_id] int NOT NULL, [customer_id] int NULL) '
 PRINT 'TRUNCATE TABLE dbo.[ub_new_schedules];'
 
+SET @counter_done = 0
+SET @counter_not_done = 0
 WHILE @@FETCH_STATUS = 0  
 BEGIN 
 	IF @ub_folder_id IS NOT NULL 
@@ -81,15 +91,23 @@ BEGIN
 		SET @sql = @sql + 'OUTPUT INSERTED.Schedule_ID, INSERTED.Customer_ID INTO dbo.[ub_new_schedules] (schedule_id, customer_id) '
 		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @schedule_start_date + ''',0);'
 		  
+		SET @counter_done = @counter_done + 1
 		PRINT @sql
-	END 
+END 
 	ELSE 
+	BEGIN 
+		SET @counter_not_done = @counter_not_done + 1
 		PRINT '-- ' + @factory_customer_name + ' (ID=' + CAST(@factory_customer_id as nvarchar(10)) + ')-> Search not Found'
-
+	END
 	FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_name, @factory_destination_path, @factory_application_url, @json_customer_id, @json_customer_name, @json_feed_id, @json_feed_name, @ub_login, @ub_password, @ub_folder_id
 END 
 CLOSE customer_cursor
 DEALLOCATE customer_cursor
+PRINT ''
+PRINT '------------------------------------------------------------'
+PRINT '-- INFO - ' + CAST(@counter_done as nvarchar(10)) + ' feeds replaced - ' + CAST(@counter_not_done as nvarchar(10)) + ' feeds not replaced'
+PRINT '------------------------------------------------------------'
+PRINT ''
 
 
 -- CREATE NEW FEEDS FOR NEWSLETTERS
@@ -107,6 +125,8 @@ WHERE nl.feed_id NOT IN (
 OPEN newsletter_cursor
 FETCH NEXT FROM newsletter_cursor INTO @json_customer_id, @json_customer_name, @json_feed_id, @json_feed_name, @ub_login, @ub_password, @ub_folder_id
 
+SET @counter_done = 0
+SET @counter_not_done = 0
 WHILE @@FETCH_STATUS = 0  
 BEGIN 
 	IF @ub_folder_id IS NOT NULL 
@@ -130,15 +150,22 @@ BEGIN
 		SET @sql = @sql + 'INSERT INTO SCHEDULE ([Customer_ID],[Schedule_Start_Date],[Schedule_Status]) '
 		SET @sql = @sql + 'OUTPUT INSERTED.Schedule_ID, INSERTED.Customer_ID INTO dbo.[ub_new_schedules] (schedule_id, customer_id) '
 		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @schedule_start_date + ''',0);'
-		  
+
+		SET @counter_done = @counter_done + 1		  
 		PRINT @sql
 	END 
 	ELSE
+		SET @counter_not_done = @counter_not_done + 1
 		PRINT '-- ' + @json_customer_name + ' (ID=' + CAST(@json_customer_id as nvarchar(10)) + ')-> Search not found for feed ' + CAST(@json_feed_id as nvarchar(10))
 	FETCH NEXT FROM newsletter_cursor INTO @json_customer_id, @json_customer_name, @json_feed_id, @json_feed_name, @ub_login, @ub_password, @ub_folder_id
 END 
 CLOSE newsletter_cursor
 DEALLOCATE newsletter_cursor
+PRINT ''
+PRINT '------------------------------------------------------------'
+PRINT '-- INFO - ' + CAST(@counter_done as nvarchar(10)) + ' new feeds created - ' + CAST(@counter_not_done as nvarchar(10)) + ' news feeds not created'
+PRINT '------------------------------------------------------------'
+PRINT ''
 
 PRINT 'SELECT * FROM dbo.[ub_new_customers];'
 PRINT 'SELECT * FROM dbo.[ub_new_Schedules];'
