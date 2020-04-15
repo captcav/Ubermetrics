@@ -123,3 +123,20 @@ def join_prop(property, obj, sep):
             return sep.join(values)
     else:
         return ''
+
+def get_augure_apps():
+    url = 'http://localhost:5002/api/V1/sf/apps'
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as response:
+        return json.loads(response.read())
+
+def save_augure_apps_to_csv():
+    print('requesting Salesforce...')
+    apps = get_augure_apps()
+    
+    print('saving Augure apps to csv...')
+    f = open('./output/augure.apps.csv', 'w+', encoding="utf-8")
+    f.write('id\tname\turl\tfrontServer\tbackServer\tlanguage\taccount_name_\taccount_tier\n')
+    for app in apps:
+        f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + app['account']['tier'] + '\n')
+    f.close()

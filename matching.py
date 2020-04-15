@@ -239,6 +239,8 @@ try:
     if sys.argv[1] == '-all':
         configs = api.get_accounts(sys.argv[2], sys.argv[3] == 'true', False)
         write_matchings(configs)
+    elif sys.argv[1] == '-aug-apps':
+        api.save_augure_apps_to_csv()
     else: 
         configs = [("./json/fixv6.0/admirabilia",("Admirabilia-Augure-API","augure20"))]
         write_matchings(configs)
@@ -247,6 +249,7 @@ except Exception as ex:
     print("usage: python matching.py <action> <path_to_folder> <isAPI>")
     print("      actions :")
     print("          -all : write all matches between Monitor feeds to Ubermetrics searches in matchings.all.csv")
+    print("          -aug-apps : request Salesforce and write all Augure apps in augure.apps.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
             
