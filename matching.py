@@ -221,10 +221,10 @@ def write_matchings_internal(monitor_file_path, ub_credentials, f):
         f.write(monitor_folder_name + '\t' + str(feed) + '\n')
 
 def write_matchings(configs):
-    results_file_name = 'matchings/matchings.all.csv'
+    results_file_name = './output/matchings.all.csv'
     if len(configs) == 1:
         monitor_folder_name = get_folder_name(configs[0][0])
-        results_file_name = 'matchings/matchings.' + monitor_folder_name + '.csv'
+        results_file_name = './output/matchings.' + monitor_folder_name + '.csv'
     
     f = open(results_file_name, 'w+', encoding="utf-8")
     f.write('folder_name' + '\t' + 'json_file_path' + '\t' + 'json_customer_id' + '\t' + 'json_customer_name' + '\t' + 'json_feed_id' + '\t' +  'json_feed_name' + '\t' + 'json_feed_property' + '\t' + 'json_feed_key' + '\t' + 'json_feed_format' + '\t' + 'json_feed_link' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
@@ -244,8 +244,11 @@ try:
         write_matchings(configs)
 except Exception as ex:
     print(ex)
-    print("usage: python commons.py -all <path_to_folder> <isAPI>")
-    print("       python commons.py -cfg-to-csv <path_to_folder> <isAPI>")
+    print("usage: python matching.py <action> <path_to_folder> <isAPI>")
+    print("      actions :")
+    print("          -all : write all matches between Monitor feeds to Ubermetrics searches in matchings.all.csv")
+    print("      path_to_folder : path to the JSON configuration files' folder")
+    print("      isAPI : boolean. Use API account or customer account ?")
             
 
 

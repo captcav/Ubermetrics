@@ -1,7 +1,5 @@
 __pycache__
-/*.csv
 /ubermetrics.pkl
 /json
 /archives
-/extract_newsletters
-/matchings
+/output

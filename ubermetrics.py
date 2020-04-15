@@ -28,7 +28,7 @@ def print_accounts(folder, isAPI, isFlat):
 
 def write_accounts(folder, isAPI):
     accounts = api.get_accounts(folder, isAPI.lower() == 'true', True)
-    f = open('account.api2.csv', 'w+', encoding="utf-8")
+    f = open('./output/account.api.csv', 'w+', encoding="utf-8")
     f.write('provider_name\tlogin\tpassword\n')
     for account in accounts:
         name = 'Ubermetrics-' + account[2].capitalize()
@@ -94,7 +94,7 @@ def save_configs_to_csv(folder, isAPI):
     tree=get_configs (folder, isAPI)  
     
     print('saving configs to csv...')
-    f = open('ubermetrics.csv', 'w+', encoding="utf-8")
+    f = open('./output/ubermetrics.csv', 'w+', encoding="utf-8")
     for child in tree.children:
         write_node(child, f)
     f.close()
@@ -113,7 +113,7 @@ def save_cache_to_csv():
     f.close()
 
     print('saving cache to csv...')
-    f = open('ubermetrics.csv', 'w+', encoding="utf-8")
+    f = open('./output/ubermetrics.csv', 'w+', encoding="utf-8")
     for child in tree.children:
         write_node(child, f)
     f.close()
@@ -145,5 +145,5 @@ except Exception as ex:
     print("          -write : dump all Ubermetrics accounts in account.api.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
-    print("      isFlat : boolean. Split France and Spain accounts or merge them into one FinalCustomer account ?")
+    print("      isFlat : boolean. Use with 'print' action. Split France and Spain accounts or merge them into one FinalCustomer account ?")
     
