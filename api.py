@@ -72,19 +72,19 @@ def get_accounts(folder, isAPI, isFlat):
             filepath = os.path.join(folder, f.name)
             if isFlat:
                 if f.name == 'finalCustomers':
-                    accounts.append((filepath, (france_account, 'augure20')))
-                    accounts.append((filepath, (spain_account, 'augure20')))
+                    accounts.append((filepath, (france_account, 'augure20'), 'France'))
+                    accounts.append((filepath, (spain_account, 'augure20'), 'Spain'))
                 else:
                     name_account = f.name.capitalize()
                     login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account, password_account)))
+                    accounts.append((filepath, (login_account, password_account), f.name))
             else:
                 if f.name == 'finalCustomers':
-                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")]))
+                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")], f.name))
                 else:
                     name_account = f.name.capitalize()
                     login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account,password_account)))
+                    accounts.append((filepath, (login_account,password_account), f.name))
         else:
             print(f.name + ' is not supported')
 
@@ -123,4 +123,3 @@ def join_prop(property, obj, sep):
             return sep.join(values)
     else:
         return ''
-        

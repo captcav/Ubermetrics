@@ -26,6 +26,17 @@ def print_accounts(folder, isAPI, isFlat):
     for account in accounts:
         print(account)
 
+def write_accounts(folder, isAPI):
+    accounts = api.get_accounts(folder, isAPI.lower() == 'true', True)
+    f = open('account.api2.csv', 'w+', encoding="utf-8")
+    f.write('provider_name\tlogin\tpassword\n')
+    for account in accounts:
+        name = 'Ubermetrics-' + account[2].capitalize()
+        login = account[1][0]
+        password = account[1][1]
+        f.write(name + '\t' + login + '\t' + password + '\n')
+    f.close()
+
 def build_config(login, password):
     data = {}
     try:
@@ -118,13 +129,21 @@ try:
         print_accounts(sys.argv[2], sys.argv[3], sys.argv[4])
     elif sys.argv[1] == '-check':
         check_accounts(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == '-write':
+        write_accounts(sys.argv[2], sys.argv[3])
     else:
         raise Exception("action undefined: " + sys.argv[1]) 
 except Exception as ex:
     print(ex)
-    print("usage: python ubermetrics.py -cfg-to-cache <path_to_folder> <isAPI>")
-    print("       python ubermetrics.py -cfg-to-csv <path_to_folder> <isAPI>")
-    print("       python ubermetrics.py -cache-to-csv <path_to_folder> <isAPI>")
-    print("       python ubermetrics.py -print <path_to_folder> <isAPI>")
-    print("       python ubermetrics.py -check <path_to_folder> <isAPI>")
+    print("usage: python ubermetrics.py <action> <path_to_folder> <isAPI> [<isFlat>]")
+    print("      actions :")
+    print("          -cfg-to-csv : dump all Ubermetrics platform in ubermetrics.csv")
+    print("          -cfg-to-cache : dump all Ubermtrics platform in ubermetrics.pkl")
+    print("          -cache-to-csv : dump the cache in ubermetrics.csv")
+    print("          -print : display all Ubermetrics accounts in the console")
+    print("          -check : try to connect to all Ubermetrics accounts")
+    print("          -write : dump all Ubermetrics accounts in account.api.csv")
+    print("      path_to_folder : path to the JSON configuration files' folder")
+    print("      isAPI : boolean. Use API account or customer account ?")
+    print("      isFlat : boolean. Split France and Spain accounts or merge them into one FinalCustomer account ?")
     
