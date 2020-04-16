@@ -4,8 +4,8 @@ use UbermetricsMigration
 SELECT T.*, 100 * T.[JSON feeds found in UB] / T.[# JSON feeds] as '% JSON feeds found in UB'
 FROM (
 	SELECT
-	  (SELECT count(DISTINCT filePath) FROM json_feeds) as '# JSON files' 
-	, (SELECT COUNT(DISTINCT feed_id) FROM json_feeds) as '# JSON feeds'
+	  (SELECT count(DISTINCT json_file_path) FROM [matchings.all]) as '# JSON files' 
+	, (SELECT COUNT(DISTINCT json_feed_id) FROM [matchings.all]) as '# JSON feeds'
 	, (SELECT COUNT(DISTINCT json_feed_id) FROM [dbo].[matchings.all] WHERE ub_login IS NOT NULL) as 'JSON feeds found in UB' 
 ) as T 
 
@@ -14,10 +14,9 @@ SELECT T.*, 100 * T.[# FACTORY feeds FOUND in JSON feeds] / T.[# FACTORY feeds] 
 FROM (	
 	SELECT
 	  (SELECT COUNT(DISTINCT Customer_ID) FROM factory_feeds) as '# FACTORY feeds' 
-	, (SELECT COUNT(DISTINCT ff.Customer_ID) FROM factory_feeds ff LEFT JOIN json_feeds jf ON ff.[Monitor_Key]=jf.[feed_key] WHERE jf.feed_id is not null) as '# FACTORY feeds found in JSON feeds' 
+	, (SELECT COUNT(DISTINCT ff.Customer_ID) FROM factory_feeds ff LEFT JOIN [matchings.all] jf ON ff.[Monitor_Key]=jf.[json_feed_key] WHERE jf.json_feed_id is not null) as '# FACTORY feeds found in JSON feeds' 
 	, (SELECT COUNT(DISTINCT ff.Customer_ID) FROM factory_feeds ff 
-			LEFT JOIN json_feeds jf ON ff.[Monitor_Key]=jf.[feed_key] 
-			LEFT JOIN [matchings.all] ON jf.[feed_id]=[json_feed_id] 
+			LEFT JOIN [matchings.all] ON ff.[Monitor_Key]=[json_feed_key] 
 		WHERE ub_login is not null
 	) as '# FACTORY feeds found in UB' 
 ) as T
