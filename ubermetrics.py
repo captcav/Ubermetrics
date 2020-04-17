@@ -28,7 +28,7 @@ def print_accounts(folder, isAPI, isFlat):
 
 def write_accounts(folder, isAPI):
     accounts = api.get_accounts(folder, isAPI.lower() == 'true', True)
-    f = open('./output/account.api.csv', 'w+', encoding="utf-8")
+    f = open('./output/ub.accounts.csv', 'w+', encoding="utf-8")
     f.write('provider_name\tlogin\tpassword\turl\n')
     for account in accounts:
         name = 'Ubermetrics-' + account[2].capitalize()

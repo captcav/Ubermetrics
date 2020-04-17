@@ -16,7 +16,7 @@ DECLARE @provider_name as nvarchar(255)
 DECLARE @ub_login as nvarchar(255)
 DECLARE @ub_password as nvarchar(255)
 
-DECLARE account_cursor CURSOR FOR SELECT DISTINCT [provider_name], [login], [password] FROM dbo.[account.api]
+DECLARE account_cursor CURSOR FOR SELECT DISTINCT [provider_name], [login], [password] FROM dbo.[ub.accounts]
 OPEN account_cursor
 FETCH NEXT FROM account_cursor INTO @provider_name, @ub_login, @ub_password
 	
@@ -62,7 +62,7 @@ END as 'url_selected'
 , ub.json_customer_id, ub.json_customer_name, ub.json_feed_id, ub.json_feed_name, ub.ub_login, ub.ub_password, ub.ub_name
 FROM factory_feeds ff
 	LEFT JOIN [dbo].[matchings.all] ub ON ff.Monitor_Key = ub.json_feed_key
-	LEFT JOIN [account.api] acc ON acc.login = ub.ub_login
+	LEFT JOIN [ub.accounts] acc ON acc.login = ub.ub_login
 	LEFT JOIN [augure.apps] aa ON aa.url LIKE '%' + ff.ApplicationName
 ORDER BY ub_login, json_customer_id, json_feed_id
 
@@ -151,7 +151,7 @@ BEGIN
 		SET @destination_path= @destination_path_base + '/' + @normalizedCustomerFolderName + '/feed.xml'
 		
 		-- Try to find a Publisher application from login or existing Factory feeds
-		SET @application_url = (SELECT [url] FROM [account.api ] WHERE [login]=@ub_login)
+		SET @application_url = (SELECT [url] FROM [ub.accounts] WHERE [login]=@ub_login)
 		IF @application_url ='???'
 			SET @application_url = (SELECT DISTINCT TOP 1 aa.[url] FROM factory_feeds ff
 				LEFT JOIN [dbo].[matchings.all] ub ON ff.Monitor_Key = ub.json_feed_key
@@ -206,7 +206,9 @@ PRINT ''
 PRINT 'SELECT c.[type], c.monitor_feed_id, c.monitor_customer_id, c.new_provider_id, c.new_customer_id, c.old_customer_id, c1.Customer_Name as new_customer_name , c2.Customer_Name as old_customer_name, c.new_destination_path, c.old_destination_path, c.augure_application, c.ub_login, c.ub_search_id '
 PRINT 'FROM dbo.[ub_new_customers] c '
 PRINT '	LEFT JOIN Customers c1 on c1.Customer_Id=c.new_customer_id '
-PRINT '	LEFT JOIN Customers c2 on c2.Customer_Id=c.old_customer_id;'
+PRINT '	LEFT JOIN Customers c2 on c2.Customer_Id=c.old_customer_id'
+--PRINT 'WHERE augure_application = ''???'''
+--PRINT 'ORDER BY ub_login'
 
 PRINT 'SELECT * FROM dbo.[ub_new_Schedules];'
 PRINT 'ROLLBACK TRAN'
