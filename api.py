@@ -5,6 +5,7 @@ import urllib.request
 import hashlib
 import os
 
+
 def request_api(params):
     url = 'https://api.ubermetrics-technologies.com'
     encoded_params = urllib.parse.urlencode(params)
@@ -62,6 +63,39 @@ def get_search_tree(options):
         "items": tree['items']
     }
 
+def get_publisher_app(name):
+    apps= [
+        ('admirabilia', 'http://admirabilia.hosting.augure.com/Augure_AdMirabilia'),
+        ('almirall', 'http://almirall.hosting.augure.com/Augure_Almirall'),
+        ('amalthea', 'http://amalthea.hosting.augure.com/Augure_Amalthea'),
+        ('anniebonnie', 'http://anniebonnie.hosting.augure.com/Augure_AnnieBonnie'),
+        ('artelier', 'http://artelier.hosting.augure.com/Augure_Artelier'),
+        ('berbes', '???'),
+        ('bluwom', 'http://bluwom.hosting.augure.com/Augure_BluWom'),
+        ('bradek', 'http://swservice.hosting.augure.com/Augure_SWS'),
+        ('bursonmarstelleremea', 'http://bm.hosting.augure.com/Augure_BM'),
+        ('comunicacionibero', 'http://comunicacioniberoamericana.hosting.augure.com/Augure_CCIBA'),
+        ('crc', 'https://crc-communication.hosting.augure.com/Augure_CRC'),
+        ('deva', 'http://deva.hosting.augure.com/Augure_Deva'),
+        ('europapress', '???'),
+        ('evercom', 'http://evercom.hosting.augure.com/Augure_Evercom'),
+        ('finalCustomers', '???'),
+        ('gaiacomunicacion', 'http://gaia.hosting.augure.com/Augure_Gaia'),
+        ('havaspr', 'http://havaspr.hosting.augure.com/Augure_HavasPR'),
+        ('keima', '???'),
+        ('lewis', 'http://lewispr.hosting.augure.com/Augure_LewisPR'),
+        ('littlewing', 'http://littlewing.hosting.augure.com/Augure_LittleWing'),
+        ('marco', '???'),
+        ('onecomunicacion', 'http://onecomunicacion.hosting.augure.com/Augure_OC'),
+        ('prisma', 'http://prisma.hosting.augure.com/Augure_Prisma'),
+        ('theoria', 'http://theoria.hosting.augure.com/Augure_Theoria'),
+        ('torresycarrera', 'http://torresycarrera.hosting.augure.com/Augure_TyC')
+    ]
+    
+    for app in apps:
+       if app[0] == name:
+           return app[1]
+
 def get_accounts(folder, isAPI, isFlat): 
     accounts = []
     password_account = 'augure20'
@@ -72,19 +106,19 @@ def get_accounts(folder, isAPI, isFlat):
             filepath = os.path.join(folder, f.name)
             if isFlat:
                 if f.name == 'finalCustomers':
-                    accounts.append((filepath, (france_account, 'augure20'), 'France'))
-                    accounts.append((filepath, (spain_account, 'augure20'), 'Spain'))
+                    accounts.append((filepath, (france_account, 'augure20'), 'France', get_publisher_app(f.name)))
+                    accounts.append((filepath, (spain_account, 'augure20'), 'Spain', get_publisher_app(f.name)))
                 else:
                     name_account = f.name.capitalize()
                     login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account, password_account), f.name))
+                    accounts.append((filepath, (login_account, password_account), f.name, get_publisher_app(f.name)))
             else:
                 if f.name == 'finalCustomers':
-                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")], f.name))
+                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")], f.name, get_publisher_app(f.name)))
                 else:
                     name_account = f.name.capitalize()
                     login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account,password_account), f.name))
+                    accounts.append((filepath, (login_account,password_account), f.name, get_publisher_app(f.name)))
         else:
             print(f.name + ' is not supported')
 

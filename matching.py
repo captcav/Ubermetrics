@@ -166,7 +166,7 @@ def match_feeds(feeds, searches, f):
         if match is not None:
             feed.ub_login = match.login
             feed.ub_password = match.password
-            feed.ub_name = match.name
+            feed.ub_name = str(int(match.name.replace('#', '')))
             feed.ub_label = match.label
             feed.ub_type = match.type
 
