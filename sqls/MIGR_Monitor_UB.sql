@@ -2,6 +2,7 @@ use UbermetricsMigration
 
 DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = (SELECT CAST(DATEDIFF(SECOND,'1970-01-01',GETUTCDATE ()) AS nvarchar(10)))
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
+DECLARE @SCHEDULE_STATUS as bit = 0
 
 DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/factory'
 DECLARE @sql as nvarchar(max) = ''
@@ -105,7 +106,7 @@ BEGIN
 		SET  @sql = @sql + 'SET @old_schedule_id = (SELECT Schedule_ID FROM Schedule WHERE Customer_ID=' + CAST(@factory_customer_id as nvarchar(20)) + ');'
 		SET @sql = @sql + 'INSERT INTO SCHEDULE ([Customer_ID],[Schedule_Start_Date],[Schedule_Status]) '
 		SET @sql = @sql + 'OUTPUT INSERTED.Schedule_ID, INSERTED.Customer_ID, ' + CAST(@factory_customer_id as nvarchar(20)) + ', @old_schedule_id INTO dbo.[ub_new_schedules] (new_schedule_id, new_customer_id, old_schedule_id, old_customer_id) '
-		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @SCHEDULE_START_DATE + ''',0);'
+		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @SCHEDULE_START_DATE + ''',' + CAST(@SCHEDULE_STATUS as nvarchar(1)) + ');'
 		  
 		SET @counter_done = @counter_done + 1
 		PRINT @sql
@@ -185,7 +186,7 @@ BEGIN
 		-- Table SCHEDULE
 		SET @sql = @sql + 'INSERT INTO SCHEDULE ([Customer_ID],[Schedule_Start_Date],[Schedule_Status]) '
 		SET @sql = @sql + 'OUTPUT INSERTED.Schedule_ID, INSERTED.Customer_ID, NULL, NULL INTO dbo.[ub_new_schedules] (new_schedule_id, new_customer_id, old_schedule_id, old_customer_id) '
-		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @SCHEDULE_START_DATE + ''',0);'
+		SET @sql = @sql + 'VALUES (@newCustomerID, ''' + @SCHEDULE_START_DATE + ''',' + CAST(@SCHEDULE_STATUS as nvarchar(1)) + ');'
 
 		SET @counter_done = @counter_done + 1		  
 		PRINT @sql

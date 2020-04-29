@@ -142,7 +142,7 @@ except Exception as ex:
     print("          -cache-to-csv : dump the cache in ubermetrics.csv")
     print("          -print : display all Ubermetrics accounts in the console")
     print("          -check : try to connect to all Ubermetrics accounts")
-    print("          -write : dump all Ubermetrics accounts in account.api.csv")
+    print("          -write : dump all Ubermetrics accounts in ub.accounts.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
     print("      isFlat : boolean. Use with 'print' action. Split France and Spain accounts or merge them into one FinalCustomer account ?")

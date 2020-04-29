@@ -241,9 +241,10 @@ try:
         write_matchings(configs)
     elif sys.argv[1] == '-aug-apps':
         api.save_augure_apps_to_csv()
-    else: 
-        configs = [("./json/fixv6.0/admirabilia",("Admirabilia-Augure-API","augure20"))]
-        write_matchings(configs)
+    else:
+        raise Exception("action undefined: " + sys.argv[1])  
+        #configs = [("./json/fixv6.0/admirabilia",("Admirabilia-Augure-API","augure20"))]
+        #write_matchings(configs)
 except Exception as ex:
     print(ex)
     print("usage: python matching.py <action> <path_to_folder> <isAPI>")

@@ -7,6 +7,8 @@ import api
 def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv): 
     for (k, v) in newsletters.items():
         line = k 
+        line += '\t' + api.get_prop('newsletter_name', v)
+        line += '\t' + api.get_prop('subject', v)
         line += '\t' + api.get_prop('design_format', v)
         line += '\t' + api.get_prop('design_title', v)
         line += '\t' + api.get_prop('logoUrl', v)
@@ -47,7 +49,7 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv):
 
 def dump_newsletters(json_paths):
     print('extracting newsletters from JSON files csv...')
-    default_headers = 'file_path \t idCustomer \t name_customer \t newsletter_id \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list \t newsletter_list'
+    default_headers = 'file_path \t idCustomer \t name_customer \t newsletter_id \t newsletter_name \t newsletter_subject \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list \t newsletter_list'
     csv = open('./output/json_newsletters.csv', 'w+', encoding="utf-8")
     csv.write(default_headers + '\t feed_id \t feed_valuation_to_show \t feed_order_by \t feed_ selection \t feed_grouping \t feed_feedName \t feed_num_mentions \n')
   
