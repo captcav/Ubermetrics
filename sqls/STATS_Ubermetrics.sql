@@ -38,7 +38,7 @@ FROM (
 -- Repartition par folder
 SELECT T.* 
 FROM (
-	SELECT folder_name as 'fixv6.0', 
+	SELECT folder_name as 'customers', 
 		count(ub_login) as 'nb_searches_found', 
 		count(folder_name)-count(ub_login) as 'nb_searches_not_found', 
 		count(folder_name) as 'nb_feeds_total', 
@@ -46,6 +46,6 @@ FROM (
 	FROM [UbermetricsMigration].[dbo].[matchings.all] 
 	GROUP BY folder_name
 ) AS T
-ORDER BY T.[percent] DESC, T.[fixv6.0] ASC
+ORDER BY T.[percent] DESC, T.[customers] ASC
 
 
