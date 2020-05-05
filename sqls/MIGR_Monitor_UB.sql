@@ -180,8 +180,11 @@ BEGIN
 		PRINT @sql
 	END 
 	ELSE
+	BEGIN 
 		SET @counter_not_done = @counter_not_done + 1
 		PRINT '-- ' + @json_customer_name + ' (ID=' + CAST(@json_customer_id as nvarchar(10)) + ')-> Search not found for feed ' + CAST(@json_feed_id as nvarchar(10))
+	END
+	
 	FETCH NEXT FROM newsletter_cursor INTO @json_customer_id, @json_customer_name, @json_feed_id, @json_feed_name, @ub_login, @ub_password, @ub_folder_id
 END 
 CLOSE newsletter_cursor
