@@ -4,7 +4,7 @@ import urllib.parse
 import urllib.request
 import hashlib
 import os
-
+import unidecode
 
 def request_api(params):
     url = 'https://api.ubermetrics-technologies.com'
@@ -18,7 +18,7 @@ def connect(login, password):
     login_request = request_api({'action' : 'login_request','user_name' : login})
     if login_request['success'] != 'true':
         raise Exception(login_request['error']['message'])
-
+        
     user_data = login_request['data']
     user_id = user_data['user_id']
     user_seed = user_data['user_seed']
@@ -158,6 +158,12 @@ def join_prop(property, obj, sep):
             return sep.join(values)
     else:
         return ''
+
+def normalized(s):
+    if s is not None:
+        s_diacritics_removed = unidecode.unidecode(s)
+        return s_diacritics_removed.translate ({ord(c): "" for c in " '""!@#$%^&*()[]{};:,./<>?\\|`~-=_+"}).lower().capitalize()
+    return s
 
 def get_augure_apps():
     url = 'http://localhost:5002/api/V1/sf/apps'

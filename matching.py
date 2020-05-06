@@ -89,8 +89,10 @@ class Feed(object):
         self.file_path = file_path
         self.customer_id = customer_id
         self.customer_name = customer_name
+        self.customer_name_normalized = api.normalized(customer_name)
         self.feed_id = feed_id
         self.feed_name = feed_name
+        self.feed_name_normalized = api.normalized(feed_name)
         self.feed_property = feed_property
         self.feed_key = feed_key
         self.feed_format = feed_format
@@ -102,7 +104,7 @@ class Feed(object):
         self.ub_type = ''
     
     def __repr__(self):
-        return self.file_path + '\t' + self.customer_id + '\t' + self.customer_name + '\t' + self.feed_id + '\t' +  self.feed_name + '\t' + self.feed_property + '\t' + self.feed_key + '\t' + self.feed_format + '\t' + self.feed_link + '\t' + self.ub_login + '\t' + self.ub_password + '\t' + self.ub_name + '\t' + self.ub_label + '\t' + self.ub_type
+        return self.file_path + '\t' + self.customer_id + '\t' + self.customer_name + '\t' + self.customer_name_normalized + '\t' + self.feed_id + '\t' +  self.feed_name + '\t' + self.feed_name_normalized + '\t' + self.feed_property + '\t' + self.feed_key + '\t' + self.feed_format + '\t' + self.feed_link + '\t' + self.ub_login + '\t' + self.ub_password + '\t' + self.ub_name + '\t' + self.ub_label + '\t' + self.ub_type
 
 def extract_monitor_feeds(folder_path):
     feeds = []
@@ -227,7 +229,7 @@ def write_matchings(configs):
         results_file_name = './output/matchings.' + monitor_folder_name + '.csv'
     
     f = open(results_file_name, 'w+', encoding="utf-8")
-    f.write('folder_name' + '\t' + 'json_file_path' + '\t' + 'json_customer_id' + '\t' + 'json_customer_name' + '\t' + 'json_feed_id' + '\t' +  'json_feed_name' + '\t' + 'json_feed_property' + '\t' + 'json_feed_key' + '\t' + 'json_feed_format' + '\t' + 'json_feed_link' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
+    f.write('folder_name' + '\t' + 'json_file_path' + '\t' + 'json_customer_id' + '\t' + 'json_customer_name' + '\t' + 'json_customer_name_normalized' + '\t' + 'json_feed_id' + '\t' + 'json_feed_name' + '\t' + 'json_feed_name_normalized ' + '\t' + 'json_feed_property' + '\t' + 'json_feed_key' + '\t' + 'json_feed_format' + '\t' + 'json_feed_link' + '\t' + 'ub_login' + '\t' + 'ub_password' + '\t' + 'ub_name' + '\t' + 'ub_label' + '\t' + 'ub_type' + '\n')
     for config in configs:
         monitor_file_path = config[0]
         ub_credentials = config[1]

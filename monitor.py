@@ -21,20 +21,21 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv):
         line += '\t' + api.get_prop('order_by', v)
         line += '\t' + api.get_prop('grouping', v)
         line += '\t' + api.get_prop('num_mentions', v)
-        line += '\t' + api.get_prop('email', v)
+        line += '\t' + api.get_prop('email_to', v)
+        line += '\t' + api.get_prop('email_remitent', v)
         line += '\t' + api.get_prop('selection', v)
         line += '\t' + api.get_prop('name_remitent', v)
         line += '\t' + api.get_prop('charset', v)
         line += '\t' + api.get_prop('type', v)
         line += '\t' + api.join_prop('days', v, '|')
         if 'list' in v:
-            line += '\t' + str(len(v['list']))
+            line += '\t' + str(len(v['email_list_to']))
         else:
             line += '\t'
-        line += '\t' + api.join_prop('list', v, ';')
+        line += '\t' + api.join_prop('email_list_to', v, ';')
 
         if 'feeds' not in v:
-            csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t\t\t\t\t\t\t\n')
+            csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + api.normalized(nameCustomer) + '\t' + line + '\t\t\t\t\t\t\t\t\n')
         else:
             feeds = v['feeds']
             for (ke, va) in feeds.items():
@@ -42,16 +43,17 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv):
                 feedLine += '\t' + api.get_prop('valuation_to_show', va)
                 feedLine += '\t' + api.get_prop('order_by', va)
                 feedLine += '\t' + api.get_prop('selection', va)
-                feedLine += '\t' + api.get_prop('grouping', va)                
-                feedLine += '\t' + api.get_prop('feedName', va)                
+                feedLine += '\t' + api.get_prop('grouping', va)
+                feedName = api.get_prop('feedName', va)         
+                feedLine += '\t' + feedName + '\t' + api.normalized(feedName)
                 feedLine += '\t' + api.get_prop('num_mentions', va)
-                csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + line + '\t' + feedLine + '\n')
+                csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + api.normalized(nameCustomer) + '\t' + line + '\t' + feedLine + '\n')
 
 def dump_newsletters(json_paths):
     print('extracting newsletters from JSON files csv...')
-    default_headers = 'file_path \t idCustomer \t name_customer \t newsletter_id \t newsletter_name \t newsletter_subject \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list \t newsletter_list'
+    default_headers = 'file_path \t idCustomer \t name_customer \t normalized_customer_name \t newsletter_id \t newsletter_name \t newsletter_subject \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email_to \t newsletter_email_remitent \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list_to \t newsletter_list_to'
     csv = open('./output/json_newsletters.csv', 'w+', encoding="utf-8")
-    csv.write(default_headers + '\t feed_id \t feed_valuation_to_show \t feed_order_by \t feed_ selection \t feed_grouping \t feed_feedName \t feed_num_mentions \n')
+    csv.write(default_headers + '\t feed_id \t feed_valuation_to_show \t feed_order_by \t feed_ selection \t feed_grouping \t feed_feedName \t normalized_feedName \t feed_num_mentions \n')
   
     for filePath in json_paths:
         with open(filePath) as json_file:
