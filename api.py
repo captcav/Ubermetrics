@@ -76,6 +76,7 @@ def get_publisher_app(name):
         ('bradek', 'http://swservice.hosting.augure.com/Augure_SWS'),
         ('bursonmarstelleremea', 'http://bm.hosting.augure.com/Augure_BM'),
         ('crc', 'https://crc-communication.hosting.augure.com/Augure_CRC'),
+        ('demo_agency', 'http://demo.hosting.augure.com/Augure_DemoAgency'),
         ('deva', 'http://deva.hosting.augure.com/Augure_Deva'),
         ('eliotrope', 'https://eliotrope.hosting.augure.com/Augure_Eliotrope'),
         ('evercom', 'http://evercom.hosting.augure.com/Augure_Evercom'),

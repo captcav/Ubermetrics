@@ -51,9 +51,9 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv):
 
 def dump_newsletters(json_paths):
     print('extracting newsletters from JSON files csv...')
-    default_headers = 'file_path \t idCustomer \t name_customer \t normalized_customer_name \t newsletter_id \t newsletter_name \t newsletter_subject \t newsletter_design_format \t newsletter_design_title \t logo_url \t primary_color \t newsletter_hour \t newsletter_min \t newsletter_hour2 \t newsletter_min2 \t newsletter_valuation_to_show \t newsletter_order_by \t newsletter_grouping \t newsletter_num_mentions \t newsletter_email_to \t newsletter_email_remitent \t newsletter_selection \t newsletter_name_remitent \t newsletter_charset \t newsletter_type \t newsletter_days \t newsletter_nb_list_to \t newsletter_list_to'
+    default_headers = 'file_path\tidCustomer\tname_customer\tnormalized_customer_name\tnewsletter_id\tnewsletter_name\tnewsletter_subject\tnewsletter_design_format\tnewsletter_design_title\tlogo_url\tprimary_color\tnewsletter_hour\tnewsletter_min\tnewsletter_hour2\tnewsletter_min2\tnewsletter_valuation_to_show\tnewsletter_order_by\tnewsletter_grouping\tnewsletter_num_mentions\tnewsletter_email_to\tnewsletter_email_remitent\tnewsletter_selection\tnewsletter_name_remitent\tnewsletter_charset\tnewsletter_type\tnewsletter_days\tnewsletter_nb_list_to\tnewsletter_list_to'
     csv = open('./output/json_newsletters.csv', 'w+', encoding="utf-8")
-    csv.write(default_headers + '\t feed_id \t feed_valuation_to_show \t feed_order_by \t feed_ selection \t feed_grouping \t feed_feedName \t normalized_feedName \t feed_num_mentions \n')
+    csv.write(default_headers + '\tfeed_id\tfeed_valuation_to_show\tfeed_order_by\tfeed_selection\tfeed_grouping\tfeed_feedName\tnormalized_feedName\tfeed_num_mentions\n')
   
     for filePath in json_paths:
         with open(filePath) as json_file:
@@ -65,6 +65,8 @@ def dump_newsletters(json_paths):
                 continue
             
             for item in data:
+                if item is None: 
+                    continue
                 if 'module' in item:
                     module =item['module']
                     if 'newsletter' in module:
@@ -90,6 +92,9 @@ def dump_feeds(json_paths):
             idCustomer=''
             nameCustomer=''
             for item in data: 
+                if item is None:
+                    continue
+                
                 if 'nameCustomer' in item:
                     idCustomer = api.get_prop('idCustomer', item)
                     nameCustomer = api.get_prop('nameCustomer', item)

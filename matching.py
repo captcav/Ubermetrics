@@ -120,7 +120,9 @@ def extract_monitor_feeds(folder_path):
             
             idCustomer=''
             nameCustomer=''
-            for item in data: 
+            for item in data:
+                if item is None:
+                    continue
                 if 'nameCustomer' in item:
                     idCustomer = api.get_prop('idCustomer', item)
                     nameCustomer = api.get_prop('nameCustomer', item)
