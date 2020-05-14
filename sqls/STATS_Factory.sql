@@ -19,7 +19,13 @@ FROM (
 		 INNER JOIN CUSTOMERS C ON C.Customer_ID=CF.Customer_ID
 		 INNER JOIN [PROVIDER] P ON P.Provider_ID = C.Provider_Id
 	 WHERE C.Provider_Id in (261, 481)  AND S.Schedule_Status=1
+	 AND C.Customer_Name not like ('Imente_DKV_%')
+	 AND C.Customer_Name not like ('Augure_Pandora_%')
+	 AND C.Customer_Name not like ('Augure_GStarRAW_%')
+	 AND C.Customer_Name not like ('Imente_MRA_Glashutte%')
+	 AND C.Customer_Name not like ('Imente_Artelier_Frinsa%')
 ) AS T 
+ORDER BY Customer_Name
 
 SELECT count(*) as nb_pige_total 
 FROM [dbo].[SOURCE_CLIPS] clip

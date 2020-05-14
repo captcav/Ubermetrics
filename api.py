@@ -80,9 +80,10 @@ def get_publisher_app(name):
         ('deva', 'http://deva.hosting.augure.com/Augure_Deva'),
         ('eliotrope', 'https://eliotrope.hosting.augure.com/Augure_Eliotrope'),
         ('evercom', 'http://evercom.hosting.augure.com/Augure_Evercom'),
-        ('finalCustomers', '???'),
+        ('finalCustomer', '???'),
         ('gaiacomunicacion', 'http://gaia.hosting.augure.com/Augure_Gaia'),
         ('havas', 'http://havas.hosting.augure.com/Augure_Havas'),
+        ('interfacespain', 'http://interfacetourismsp.hosting.augure.com/Augure_InterfaceTourismSP'),
         ('keima', 'https://keima.hosting.augure.com/Augure_Keima'),        
         ('lewis', 'http://lewispr.hosting.augure.com/Augure_LewisPR'),
         ('littlewing', 'http://littlewing.hosting.augure.com/Augure_LittleWing'),
@@ -107,7 +108,7 @@ def get_accounts(folder, isAPI, isFlat):
         if f.is_dir():
             filepath = os.path.join(folder, f.name)
             if isFlat:
-                if f.name == 'finalCustomers':
+                if f.name == 'finalCustomer':
                     accounts.append((filepath, (france_account, 'augure20'), 'France', get_publisher_app(f.name)))
                     accounts.append((filepath, (spain_account, 'augure20'), 'Spain', get_publisher_app(f.name)))
                 else:
@@ -115,7 +116,7 @@ def get_accounts(folder, isAPI, isFlat):
                     login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
                     accounts.append((filepath, (login_account, password_account), f.name, get_publisher_app(f.name)))
             else:
-                if f.name == 'finalCustomers':
+                if f.name == 'finalCustomer':
                     accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")], f.name, get_publisher_app(f.name)))
                 else:
                     name_account = f.name.capitalize()
