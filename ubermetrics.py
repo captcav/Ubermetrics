@@ -6,6 +6,8 @@ import csv
 import sys
 import pickle
 from tree import Tree
+from dotenv import load_dotenv
+load_dotenv()
 
 def try_connect(login, password):
     try:
@@ -14,28 +16,16 @@ def try_connect(login, password):
     except Exception as ex:
         return str(ex)
 
-def check_accounts(folder, isAPI):
-    accounts = api.get_accounts(folder,  isAPI.lower() == 'true', True)
+def check_active_accounts(isAPI):
+    accounts = api.get_ub_active_accounts()
     for account in accounts:
-        login_account = account[1][0]
-        password_account = account[1][1]
-        print('trying to connect to ' + login_account + ': ' + try_connect(login_account, password_account))
+        login = account[1] if (isAPI.lower() == 'true') else account[0]
+        print('connect to ' + login + ': ' + try_connect(login, os.getenv("UB_ACCOUNT_PASSWORD")))
 
-def print_accounts(folder, isAPI, isFlat):
-    accounts = api.get_accounts(folder, isAPI.lower() == 'true', isFlat.lower() == 'true')
+def print_active_accounts():
+    accounts = api.get_ub_active_accounts()
     for account in accounts:
         print(account)
-
-def write_accounts(folder, isAPI):
-    accounts = api.get_accounts(folder, isAPI.lower() == 'true', True)
-    f = open('./output/ub.accounts.csv', 'w+', encoding="utf-8")
-    f.write('provider_name\tlogin\tpassword\turl\n')
-    for account in accounts:
-        name = 'Ubermetrics-' + account[2].capitalize()
-        login = account[1][0]
-        password = account[1][1]
-        f.write(name + '\t' + login + '\t' + password + '\t' + account[3] + '\n')
-    f.close()
 
 def build_config(login, password):
     data = {}
@@ -77,32 +67,33 @@ def write_node(node, f, str = ''):
         for child in node.children:
             write_node(child, f, str)
 
-def get_configs(folder, isAPI):
-    accounts = api.get_accounts(folder, isAPI.lower() == 'true', True)
-    root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
+def get_configs(isAPI):
     print('building configuration...')
+
+    accounts = api.get_ub_active_accounts()
+    root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
     for account in accounts:
-        login= account[1][0]
-        password=account[1][1]
+        login = account[1] if (isAPI.lower() == 'true') else account[0]
+        password = os.getenv("UB_ACCOUNT_PASSWORD")
         print('--- get configuration for ' + login + '/' + password + '...')
         config = build_config(login, password)
         if config is not None:
             root.add_child(config)
     return root
 
-def save_configs_to_csv(folder, isAPI):
-    tree=get_configs (folder, isAPI)  
-    
-    print('saving configs to csv...')
+def dump_all_configs(isAPI):
+    print('dumping configs to csv...')
+
+    tree=get_configs (isAPI)  
     f = open('./output/ubermetrics.csv', 'w+', encoding="utf-8")
     for child in tree.children:
         write_node(child, f)
     f.close()
 
-def save_configs_to_cache(folder, isAPI):
-    tree = get_configs(folder, isAPI)
-    
+def save_configs_to_cache(isAPI):
     print('saving configs to cache...')
+    
+    tree = get_configs(isAPI)
     afile = open(r'ubermetrics.pkl', 'wb')
     pickle.dump(tree, afile)
     afile.close()
@@ -119,31 +110,27 @@ def save_cache_to_csv():
     f.close()
 
 try:
-    if sys.argv[1] == '-cfg-to-cache':
-        save_configs_to_cache(sys.argv[2], sys.argv[3])
-    elif sys.argv[1] == '-cfg-to-csv':
-        save_configs_to_csv(sys.argv[2], sys.argv[3])
+    if sys.argv[1] == '-dump-all':
+        dump_all_configs(sys.argv[2])
+    elif sys.argv[1] == '-cfg-to-cache':
+        save_configs_to_cache(sys.argv[2])
     elif sys.argv[1] == '-cache-to-csv':
         save_cache_to_csv()
     elif sys.argv[1] == '-print':
-        print_accounts(sys.argv[2], sys.argv[3], sys.argv[4])
+        print_active_accounts()
     elif sys.argv[1] == '-check':
-        check_accounts(sys.argv[2], sys.argv[3])
-    elif sys.argv[1] == '-write':
-        write_accounts(sys.argv[2], sys.argv[3])
+        check_active_accounts(sys.argv[2])
     else:
         raise Exception("action undefined: " + sys.argv[1]) 
 except Exception as ex:
     print(ex)
-    print("usage: python ubermetrics.py <action> <path_to_folder> <isAPI> [<isFlat>]")
+    print("usage: python ubermetrics.py <action> <path_to_folder> <isAPI>")
     print("      actions :")
     print("          -cfg-to-csv : dump all Ubermetrics platform in ubermetrics.csv")
     print("          -cfg-to-cache : dump all Ubermtrics platform in ubermetrics.pkl")
     print("          -cache-to-csv : dump the cache in ubermetrics.csv")
     print("          -print : display all Ubermetrics accounts in the console")
     print("          -check : try to connect to all Ubermetrics accounts")
-    print("          -write : dump all Ubermetrics accounts in ub.accounts.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
-    print("      isFlat : boolean. Use with 'print' action. Split France and Spain accounts or merge them into one FinalCustomer account ?")
     
