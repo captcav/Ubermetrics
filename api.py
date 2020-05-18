@@ -5,6 +5,8 @@ import urllib.request
 import hashlib
 import os
 import unidecode
+from api_google_sheet import get_ubermetrics_accounts
+from api_salesforce import get_salesforce_apps
 
 def request_api(params):
     url = 'https://api.ubermetrics-technologies.com'
@@ -98,6 +100,15 @@ def get_publisher_app(name):
     for app in apps:
        if app[0] == name:
            return app[1]
+
+def get_ub_active_accounts():
+    print('retrieve accounts list from Ubermetrics Google Sheet...')
+    accounts = get_ubermetrics_accounts()
+    return filter(lambda row:row[2] == 'in use', accounts)
+
+def get_sf_applications():
+    print('retrieve Publisher applications from Salesforce...')
+    return get_salesforce_apps()
 
 def get_accounts(folder, isAPI, isFlat): 
     accounts = []
