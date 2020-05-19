@@ -20,7 +20,8 @@ def check_active_accounts(isAPI):
     accounts = api.get_ub_active_accounts()
     for account in accounts:
         login = account[1] if (isAPI.lower() == 'true') else account[0]
-        print('connect to ' + login + ': ' + try_connect(login, os.getenv("UB_ACCOUNT_PASSWORD")))
+        password = account[2]
+        print('connect to ' + login + ': ' + try_connect(login, password))
 
 def print_active_accounts():
     accounts = api.get_ub_active_accounts()
@@ -72,9 +73,10 @@ def get_configs(isAPI):
 
     accounts = api.get_ub_active_accounts()
     root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
+
     for account in accounts:
         login = account[1] if (isAPI.lower() == 'true') else account[0]
-        password = os.getenv("UB_ACCOUNT_PASSWORD")
+        password = account[2]
         print('--- get configuration for ' + login + '/' + password + '...')
         config = build_config(login, password)
         if config is not None:
@@ -126,7 +128,7 @@ except Exception as ex:
     print(ex)
     print("usage: python ubermetrics.py <action> <path_to_folder> <isAPI>")
     print("      actions :")
-    print("          -cfg-to-csv : dump all Ubermetrics platform in ubermetrics.csv")
+    print("          -dump-all : dump all Ubermetrics platform in ubermetrics.csv")
     print("          -cfg-to-cache : dump all Ubermtrics platform in ubermetrics.pkl")
     print("          -cache-to-csv : dump the cache in ubermetrics.csv")
     print("          -print : display all Ubermetrics accounts in the console")

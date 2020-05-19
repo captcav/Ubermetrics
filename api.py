@@ -70,7 +70,12 @@ def get_search_tree(options):
 def get_ub_active_accounts():
     print('retrieve accounts list from Ubermetrics Google Sheet...')
     accounts = get_ubermetrics_accounts()
-    return filter(lambda row:row[2] == 'in use', accounts)
+
+    tmp = list(map(lambda row:[row[0], row[1], os.getenv("UB_ACCOUNT_PASSWORD"), row[2]], accounts))
+    tmp.append(['demoagency', 'demoagency', 'demo2020', 'in use'])
+    tmp.append(['demofinal', 'demofinal', 'demo2020', 'in use'])
+
+    return filter(lambda row:row[3] == 'in use', tmp)
 
 def get_sf_applications():
     print('retrieve Publisher applications from Salesforce...')
@@ -78,7 +83,6 @@ def get_sf_applications():
 
 def get_accounts_info(folder, isAPI): 
     ub_accounts = list(get_ub_active_accounts())
-    ub_password = os.getenv("UB_ACCOUNT_PASSWORD")
     sf_apps = get_sf_applications()
     
     results = []
@@ -91,6 +95,8 @@ def get_accounts_info(folder, isAPI):
             application_url.append("http://mapfre.hosting.augure.com/Augure_Mapfre")
         elif f.name == 'marco':
             application_url.append("http://marcodecomunicacion.hosting.augure.com/Augure_MdCom")
+        elif f.name == 'demo_agency':
+            application_url.append('https://demo.hosting.augure.com/Demo_Agencia')
         elif f.name != 'france' and f.name != 'spain':
             f1_name = f.name
             f1_name = unidecode.unidecode(f.name)
@@ -128,12 +134,17 @@ def get_accounts_info(folder, isAPI):
             folder_name = 'eliotrop'
         elif f.name == 'havaspr':
             folder_name = 'havas'
+        elif f.name == 'demo_rp':
+            folder_name = 'demofinal'
+        elif f.name == 'demo_agency':
+            folder_name = 'demoagency'
         else:
             folder_name = f.name
 
         for ub_account in ub_accounts:
             if ub_account[0].replace('-Augure','').lower() == folder_name.lower():
                 ub_login = ub_account[1] if (isAPI.lower() == 'true') else ub_account[0]
+                ub_password = ub_account[2]
                 ub_info = (ub_login, ub_password)
                 break
         
