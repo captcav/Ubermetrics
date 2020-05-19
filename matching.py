@@ -240,21 +240,38 @@ def write_matchings(configs):
     f.close()
 
 try:
-    if sys.argv[1] == '-all':
-        configs = api.get_accounts(sys.argv[2], sys.argv[3] == 'true', False)
+    if sys.argv[1] == '-match':
+        configs = api.get_accounts_info(sys.argv[2], sys.argv[3])
         write_matchings(configs)
-    elif sys.argv[1] == '-aug-apps':
-        api.save_augure_apps_to_csv()
+    elif sys.argv[1] == '-print-accounts':
+        configs = api.get_accounts_info(sys.argv[2], sys.argv[3])
+        for config in configs:
+            print(config)
+    elif sys.argv[1] == '-write-accounts':
+        configs = api.get_accounts_info(sys.argv[2], sys.argv[3])
+        f = open("./output/ub.accounts.csv", 'w+', encoding="utf-8")
+        f.write('provider_name\tlogin\tpassword\tapp_url\n')
+        for config in configs:
+            filepath = config[0]
+            login = config[1][0] if config[1] is not None else '???'
+            password = config[1][1] if config[1] is not None else '???'
+            customer = config[2].capitalize()
+            urls = config[3]
+            url=urls[0] if urls is not None and len(urls) == 1 else '???'
+            f.write(customer + '\t' + login + '\t' + password + '\t' + url + '\n')
+        f.close()
+    elif sys.argv[1] == '-augure-apps':
+        api.write_augure_apps()
     else:
         raise Exception("action undefined: " + sys.argv[1])  
-        #configs = [("./json/fixv6.0/admirabilia",("Admirabilia-Augure-API","augure20"))]
-        #write_matchings(configs)
 except Exception as ex:
     print(ex)
     print("usage: python matching.py <action> <path_to_folder> <isAPI>")
     print("      actions :")
-    print("          -all : write all matches between Monitor feeds to Ubermetrics searches in matchings.all.csv")
-    print("          -aug-apps : request Salesforce and write all Augure apps in augure.apps.csv")
+    print("          -match : dump all matches between Monitor feeds to Ubermetrics searches in matchings.all.csv")
+    print("          -write-accounts : write customer info in ub.accounts.csv")
+    print("          -print-accounts : print customer info")
+    print("          -augure-apps: write publisher apps info in augure.app.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
             

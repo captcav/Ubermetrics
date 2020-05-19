@@ -4,7 +4,7 @@ DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = (SELECT CAST(DATEDIFF(SECO
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @SCHEDULE_STATUS as bit = 0
 
-DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/factory'
+DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/factory2'
 DECLARE @sql as nvarchar(max) = ''
 DECLARE @counter_done as int = 0
 DECLARE @counter_not_done as int = 0
@@ -50,8 +50,8 @@ DECLARE customer_cursor CURSOR FOR
 SELECT DISTINCT  ff.Customer_ID, ff.Customer_Name, ff.Destination_Path 
 , CASE 
 	WHEN ff.ApplicationUrl IS NOT NULL AND LEN(ff.ApplicationUrl) > 0 THEN ff.ApplicationUrl
-	WHEN acc.[url] = '???' OR acc.[url] IS NULL OR LEN(acc.[url])=0 THEN aa.[url]
-	ELSE acc.[url]
+	WHEN acc.[app_url] = '???' OR acc.[app_url] IS NULL OR LEN(acc.[app_url])=0 THEN aa.[url]
+	ELSE acc.[app_url]
 END as 'url_selected'
 , ub.json_customer_id, ub.json_customer_name, ub.[json_customer_name_normalized], ub.json_feed_id, ub.json_feed_name, ub.[json_feed_name_normalized], ub.ub_login, ub.ub_password, ub.ub_name
 FROM factory_feeds ff
@@ -66,7 +66,7 @@ FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_nam
 PRINT 'DECLARE @newCustomerID as int;'
 PRINT 'DECLARE @old_schedule_id as int;'
 PRINT 'IF NOT EXISTS (select * from dbo.sysobjects where id = object_id(N''[dbo].[ub_new_customers]'')) '
-PRINT 'CREATE TABLE dbo.[ub_new_customers] ([monitor_feed_id] int NOT NULL, [monitor_customer_id] int NOT NULL, [monitor_customer_name] nvarchar(100) NOT NULL, [new_customer_id] int NOT NULL, [new_provider_id] int NOT NULL, [old_customer_id] int NULL, [type] nvarchar(20) NOT NULL, [new_destination_path] nvarchar(500) NOT NULL, [old_destination_path] nvarchar(500) NULL, [augure_application] nvarchar(500) NULL, ub_login nvarchar(100) NOT NULL, ub_search_id int NOT NULL)'
+PRINT 'CREATE TABLE dbo.[ub_new_customers] ([monitor_feed_id] int NOT NULL, [monitor_feed_name] nvarchar(500) NULL, [monitor_customer_id] int NOT NULL, [monitor_customer_name] nvarchar(100) NOT NULL, [new_customer_id] int NOT NULL, [new_provider_id] int NOT NULL, [old_customer_id] int NULL, [type] nvarchar(20) NOT NULL, [new_destination_path] nvarchar(500) NOT NULL, [old_destination_path] nvarchar(500) NULL, [augure_application] nvarchar(500) NULL, ub_login nvarchar(100) NOT NULL, ub_search_id int NOT NULL); '
 PRINT 'TRUNCATE TABLE dbo.[ub_new_customers];'
 PRINT 'IF NOT EXISTS (select * from dbo.sysobjects where id = object_id(N''[dbo].[ub_new_schedules]'')) '
 PRINT 'CREATE TABLE dbo.[ub_new_schedules] ([new_schedule_id] int NOT NULL, [new_customer_id] int NULL, [old_schedule_id] int NULL, [old_customer_id] int NULL) '
@@ -84,7 +84,7 @@ BEGIN
 
 		-- Table CUSTOMERS
 		SET @sql = 'INSERT INTO CUSTOMERS (Customer_Name, SourceConnectionProtocol, SourceConnectionUrl, SourceConnectionUsername , SourceConnectionPassword, Destination_Path, FeedVersion, FeedClipDays, Customer_Status, ApplicationUrl, Provider_Id) '
-		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, ' + CAST(@factory_customer_id AS nvarchar(20)) + ', ''factory'', ''' + @destination_path + ''',''' + @factory_destination_path + ''',''' + @factory_application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
+		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',''' + REPLACE(@json_feed_name, '''','') + ''',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, ' + CAST(@factory_customer_id AS nvarchar(20)) + ', ''factory'', ''' + @destination_path + ''',''' + @factory_destination_path + ''',''' + @factory_application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_feed_name, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
 		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''', 2, 5, 1, ''' + @factory_application_url + ''',@ProviderID);'
 		SET @sql = @sql + 'SET @newCustomerID=(SELECT MAX(new_customer_id) FROM ub_new_customers);'
 
@@ -141,7 +141,7 @@ BEGIN
 		SET @destination_path= @destination_path_base + '/' + @normalizedCustomerFolderName + '/feed.xml'
 		
 		-- Try to find a Publisher application from login or existing Factory feeds
-		SET @application_url = (SELECT [url] FROM [ub.accounts] WHERE [login]=@ub_login)
+		SET @application_url = (SELECT [app_url] FROM [ub.accounts] WHERE [login]=@ub_login)
 		IF @application_url ='???'
 			SET @application_url = (SELECT DISTINCT TOP 1 aa.[url] FROM factory_feeds ff
 				LEFT JOIN [dbo].[matchings.all] ub ON ff.Monitor_Key = ub.json_feed_key
@@ -163,7 +163,7 @@ BEGIN
 
 		-- Table CUSTOMERS
 		SET @sql = 'INSERT INTO CUSTOMERS (Customer_Name,  SourceConnectionProtocol, SourceConnectionUrl, SourceConnectionUsername , SourceConnectionPassword, Destination_Path, FeedVersion, FeedClipDays, Customer_Status, ApplicationUrl, Provider_Id) '
-		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, NULL, ''newsletter'', ''' + @destination_path + ''',NULL,''' + @application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
+		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',''' + REPLACE(@json_feed_name, '''','') + ''',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, NULL, ''newsletter'', ''' + @destination_path + ''',NULL,''' + @application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_feed_name, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
 		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''',2,5,1,''' + @application_url + ''', @ProviderID);'
 		SET @sql = @sql + 'SET @newCustomerID=(SELECT MAX(new_customer_id) FROM ub_new_customers);'
 
@@ -195,7 +195,7 @@ PRINT '-- INFO - ' + CAST(@counter_done as nvarchar(10)) + ' new feeds created -
 PRINT '------------------------------------------------------------'
 PRINT ''
 
-PRINT 'SELECT c.[type], c.monitor_feed_id, c.monitor_customer_id, c.new_provider_id, c.new_customer_id, c.old_customer_id, c1.Customer_Name as new_customer_name , c2.Customer_Name as old_customer_name, c.new_destination_path, c.old_destination_path, c.augure_application, c.ub_login, c.ub_search_id '
+PRINT 'SELECT c.[type], c.monitor_feed_id, c.monitor_feed_name, c.monitor_customer_id, c.new_provider_id, c.new_customer_id, c.old_customer_id, c1.Customer_Name as new_customer_name , c2.Customer_Name as old_customer_name, c.new_destination_path, c.old_destination_path, c.augure_application, c.ub_login, c.ub_search_id '
 PRINT 'FROM dbo.[ub_new_customers] c '
 PRINT '	LEFT JOIN Customers c1 on c1.Customer_Id=c.new_customer_id '
 PRINT '	LEFT JOIN Customers c2 on c2.Customer_Id=c.old_customer_id'

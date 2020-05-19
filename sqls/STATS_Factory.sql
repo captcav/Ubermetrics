@@ -24,6 +24,7 @@ FROM (
 	 AND C.Customer_Name not like ('Augure_GStarRAW_%')
 	 AND C.Customer_Name not like ('Imente_MRA_Glashutte%')
 	 AND C.Customer_Name not like ('Imente_Artelier_Frinsa%')
+	 AND C.Customer_Name not like ('Augure_SC_SerenaCapital%')
 ) AS T 
 ORDER BY Customer_Name
 

@@ -6,10 +6,12 @@ import hashlib
 import os
 import unidecode
 from api_google_sheet import get_ubermetrics_accounts
-from api_salesforce import get_salesforce_apps
+import api_salesforce
+from dotenv import load_dotenv
+load_dotenv()
 
 def request_api(params):
-    url = 'https://api.ubermetrics-technologies.com'
+    url = os.getenv("UB_API_ENDPOINT")
     encoded_params = urllib.parse.urlencode(params)
     encoded_params = encoded_params.encode('ascii') # data should be bytes
     req = urllib.request.Request(url, encoded_params)
@@ -65,42 +67,6 @@ def get_search_tree(options):
         "items": tree['items']
     }
 
-def get_publisher_app(name):
-    apps= [
-        ('admirabilia', 'http://admirabilia.hosting.augure.com/Augure_AdMirabilia'),
-        ('adocom', 'https://adocom.hosting.augure.com/Augure_Adocom'),
-        ('almirall', 'http://almirall.hosting.augure.com/Augure_Almirall'),
-        ('amalthea', 'http://amalthea.hosting.augure.com/Augure_Amalthea'),
-        ('anniebonnie', 'http://anniebonnie.hosting.augure.com/Augure_AnnieBonnie'),
-        ('artelier', 'http://artelier.hosting.augure.com/Augure_Artelier'),
-        ('berbes', 'https://berbes.hosting.augure.com/Augure_Berbes'),
-        ('bluwom', 'http://bluwom.hosting.augure.com/Augure_BluWom'),
-        ('bradek', 'http://swservice.hosting.augure.com/Augure_SWS'),
-        ('bursonmarstelleremea', 'http://bm.hosting.augure.com/Augure_BM'),
-        ('crc', 'https://crc-communication.hosting.augure.com/Augure_CRC'),
-        ('demo_agency', 'http://demo.hosting.augure.com/Augure_DemoAgency'),
-        ('deva', 'http://deva.hosting.augure.com/Augure_Deva'),
-        ('eliotrope', 'https://eliotrope.hosting.augure.com/Augure_Eliotrope'),
-        ('evercom', 'http://evercom.hosting.augure.com/Augure_Evercom'),
-        ('finalCustomer', '???'),
-        ('gaiacomunicacion', 'http://gaia.hosting.augure.com/Augure_Gaia'),
-        ('havas', 'http://havas.hosting.augure.com/Augure_Havas'),
-        ('interfacespain', 'http://interfacetourismsp.hosting.augure.com/Augure_InterfaceTourismSP'),
-        ('keima', 'https://keima.hosting.augure.com/Augure_Keima'),        
-        ('lewis', 'http://lewispr.hosting.augure.com/Augure_LewisPR'),
-        ('littlewing', 'http://littlewing.hosting.augure.com/Augure_LittleWing'),
-        ('marco', 'http://marcodecomunicacion.hosting.augure.com/Augure_MdCom'),
-        ('onecomunicacion', 'http://onecomunicacion.hosting.augure.com/Augure_OC'),
-        ('prisma', 'http://prisma.hosting.augure.com/Augure_Prisma'),
-        ('swatch', 'http://mra.hosting.augure.com/Augure_MRA'),
-        ('theoria', 'http://theoria.hosting.augure.com/Augure_Theoria'),
-        ('torresycarrera', 'http://torresycarrera.hosting.augure.com/Augure_TyC')
-    ]
-    
-    for app in apps:
-       if app[0] == name:
-           return app[1]
-
 def get_ub_active_accounts():
     print('retrieve accounts list from Ubermetrics Google Sheet...')
     accounts = get_ubermetrics_accounts()
@@ -108,35 +74,72 @@ def get_ub_active_accounts():
 
 def get_sf_applications():
     print('retrieve Publisher applications from Salesforce...')
-    return get_salesforce_apps()
+    return api_salesforce.get_sf_apps()
 
-def get_accounts(folder, isAPI, isFlat): 
-    accounts = []
-    password_account = 'augure20'
-    france_account = 'France-Augure-API' if isAPI else 'France-Augure'
-    spain_account = 'Spain-Augure-API' if isAPI else 'Spain-Augure'
+def get_accounts_info(folder, isAPI): 
+    ub_accounts = list(get_ub_active_accounts())
+    ub_password = os.getenv("UB_ACCOUNT_PASSWORD")
+    sf_apps = get_sf_applications()
+    
+    results = []
     for f in os.scandir(folder):
-        if f.is_dir():
-            filepath = os.path.join(folder, f.name)
-            if isFlat:
-                if f.name == 'finalCustomer':
-                    accounts.append((filepath, (france_account, 'augure20'), 'France', get_publisher_app(f.name)))
-                    accounts.append((filepath, (spain_account, 'augure20'), 'Spain', get_publisher_app(f.name)))
-                else:
-                    name_account = f.name.capitalize()
-                    login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account, password_account), f.name, get_publisher_app(f.name)))
-            else:
-                if f.name == 'finalCustomer':
-                    accounts.append((filepath, [(france_account, "augure20"), (spain_account,"augure20")], f.name, get_publisher_app(f.name)))
-                else:
-                    name_account = f.name.capitalize()
-                    login_account = (name_account + '-Augure-API') if isAPI else name_account + '-Augure'
-                    accounts.append((filepath, (login_account,password_account), f.name, get_publisher_app(f.name)))
-        else:
-            print(f.name + ' is not supported')
+        filepath = os.path.join(folder, f.name)
 
-    return accounts
+        # Get Application URL 
+        application_url = []
+        if f.name == 'mapfre':
+            application_url.append("http://mapfre.hosting.augure.com/Augure_Mapfre")
+        elif f.name == 'marco':
+            application_url.append("http://marcodecomunicacion.hosting.augure.com/Augure_MdCom")
+        elif f.name != 'france' and f.name != 'spain':
+            f1_name = f.name
+            f1_name = unidecode.unidecode(f.name)
+
+            dict = {
+                "beaulolais": "beaujolais",
+                "bursonmarstelleremea":"bmie",
+                "elanedelman":"Elan Edelman",
+                "spencerlewis":"Spencer & Lewis",
+                "muséenature":"Musée de la Chasse et de la Nature",
+                "interfacespain":"Interface Tourism Group",
+                "gaiacomunicacion":"gaia",
+                "frederiqueconstant":"Frederique Constant",
+                "eolocomunicación":"eolo",
+                "repsolsa":"Repsol S.A.",
+                "nintendo":"Nintendo SP",
+                "lewis":"Lewis Communications SL"
+            }
+
+            if f.name in dict:
+                f1_name = dict[f.name]
+
+            arr =[]
+            for app in sf_apps:
+                if f1_name in app['name'] or f1_name in app['url'] or f1_name in app['account']['name']:  
+                    arr.append(app['url'])
+                elif app['name'].lower().find(f1_name,0) >= 0 or app['url'].lower().find(f1_name,0) >= 0 or app['account']['name'].lower().find(f1_name,0) >= 0:
+                    arr.append(app['url'])
+
+            application_url = arr
+
+        # Get Ubermetrics info 
+        ub_info = None
+        if f.name == 'eliotrope':
+            folder_name = 'eliotrop'
+        elif f.name == 'havaspr':
+            folder_name = 'havas'
+        else:
+            folder_name = f.name
+
+        for ub_account in ub_accounts:
+            if ub_account[0].replace('-Augure','').lower() == folder_name.lower():
+                ub_login = ub_account[1] if (isAPI.lower() == 'true') else ub_account[0]
+                ub_info = (ub_login, ub_password)
+                break
+        
+        results.append((filepath, ub_info, folder_name, application_url))
+    
+    return results
 
 def get_JSON_filepaths(folder):   
     paths = [] 
@@ -178,19 +181,13 @@ def normalized(s):
         return s_diacritics_removed.translate ({ord(c): "" for c in " '""!@#$%^&*()[]{};:,./<>?\\|`~-=_+"}).lower().capitalize()
     return s
 
-def get_augure_apps():
-    url = 'http://localhost:5002/api/V1/sf/apps'
-    req = urllib.request.Request(url)
-    with urllib.request.urlopen(req) as response:
-        return json.loads(response.read())
-
-def save_augure_apps_to_csv():
-    print('requesting Salesforce...')
-    apps = get_augure_apps()
+def write_augure_apps():
+    apps = get_sf_applications()
     
-    print('saving Augure apps to csv...')
+    print('save to augure.apps.csv...')
     f = open('./output/augure.apps.csv', 'w+', encoding="utf-8")
     f.write('id\tname\turl\tfrontServer\tbackServer\tlanguage\taccount_name_\taccount_tier\n')
     for app in apps:
-        f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + app['account']['tier'] + '\n')
+        tier = app['account']['tier'] if app['account']['tier'] is not None else ''
+        f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + tier + '\n')
     f.close()
