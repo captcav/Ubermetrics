@@ -97,6 +97,12 @@ def get_accounts_info(folder, isAPI):
             application_url.append("http://marcodecomunicacion.hosting.augure.com/Augure_MdCom")
         elif f.name == 'demo_agency':
             application_url.append('https://demo.hosting.augure.com/Demo_Agencia')
+        elif f.name == 'certina' or f.name == 'rado' or f.name == 'swatch':
+            application_url.append('http://mra.hosting.augure.com/Augure_MRA')   
+        elif f.name == 'mayoral':
+            application_url.append('http://ra.hosting.augure.com/Augure_RA')   
+        elif f.name == 'elanedelman':
+            application_url.append('http://agenceee.hosting.augure.com/Augure_EE')
         elif f.name != 'france' and f.name != 'spain':
             f1_name = f.name
             f1_name = unidecode.unidecode(f.name)
@@ -111,7 +117,6 @@ def get_accounts_info(folder, isAPI):
                 "gaiacomunicacion":"gaia",
                 "frederiqueconstant":"Frederique Constant",
                 "eolocomunicación":"eolo",
-                "repsolsa":"Repsol S.A.",
                 "nintendo":"Nintendo SP",
                 "lewis":"Lewis Communications SL"
             }
@@ -132,8 +137,6 @@ def get_accounts_info(folder, isAPI):
         ub_info = None
         if f.name == 'eliotrope':
             folder_name = 'eliotrop'
-        elif f.name == 'havaspr':
-            folder_name = 'havas'
         elif f.name == 'demo_rp':
             folder_name = 'demofinal'
         elif f.name == 'demo_agency':
