@@ -5,6 +5,7 @@ import urllib.request
 import hashlib
 import os
 import unidecode
+import commons
 from api_google_sheet import get_ubermetrics_accounts
 import api_salesforce
 from dotenv import load_dotenv
@@ -84,31 +85,49 @@ def get_sf_applications():
     print('retrieve Publisher applications from Salesforce...')
     return api_salesforce.get_sf_apps()
 
-def get_accounts_info(folder, isAPI): 
+def process_all_accounts(working_folder, isAPI): 
     ub_accounts = list(get_ub_active_accounts(isAPI))
     sf_apps = get_sf_applications()
     
     results = []
-    for f in os.scandir(folder):
-        filepath = os.path.join(folder, f.name)
+    for folder in os.scandir(working_folder):
+        if not folder.is_dir:
+            continue
+        info = process_account(folder.name, folder.path, ub_accounts, sf_apps)
+        results.append(info)
+    return results
 
-        # Get Application URL 
+def process_one_account(folder_path:str, isAPI:bool = True):
+    folder_name = commons.get_folder_name(folder_path)
+    ub_accounts = list(get_ub_active_accounts(isAPI))
+    sf_apps = get_sf_applications()
+    
+    results = []
+    info = process_account(folder_name, folder_path, ub_accounts, sf_apps)
+    results.append(info)
+    return results
+
+def process_account(folder_name:str, folder_path:str, ub_accounts:list, sf_apps:list):
+
+        # guess Publisher application URL 
         application_url = []
-        if f.name == 'marco':
+        if folder_name == 'marco':
             application_url.append("http://marcodecomunicacion.hosting.augure.com/Augure_MdCom")
-        elif f.name == 'demo_agency':
+        elif folder_name == 'demo_agency':
             application_url.append('https://demo.hosting.augure.com/Demo_Agencia')
-        elif f.name == 'certina' or f.name == 'rado' or f.name == 'swatch':
+        elif folder_name == 'certina' or folder_name == 'rado' or folder_name == 'swatch':
             application_url.append('http://mra.hosting.augure.com/Augure_MRA')   
-        elif f.name == 'mayoral':
+        elif folder_name == 'mayoral':
             application_url.append('http://ra.hosting.augure.com/Augure_RA')   
-        elif f.name == 'elanedelman':
+        elif folder_name == 'elanedelman':
             application_url.append('http://agenceee.hosting.augure.com/Augure_EE')
-        # elif f.name == 'mapfre':
+        elif folder_name == 'oxfaminternational':
+            application_url.append('http://intermonoxfam.hosting.augure.com/Augure_IntermonOxfam')            
+        # elif folder == 'mapfre':
         #     application_url.append("http://mapfre.hosting.augure.com/Augure_Mapfre")
-        elif f.name != 'france' and f.name != 'spain':
-            f1_name = f.name
-            f1_name = unidecode.unidecode(f.name)
+        elif folder_name != 'france' and folder_name != 'spain':
+            f1_name = folder_name
+            f1_name = unidecode.unidecode(folder_name)
 
             dict = {
                 "bursonmarstelleremea":"bmie",
@@ -123,8 +142,8 @@ def get_accounts_info(folder, isAPI):
                 "lewis":"Lewis Communications SL"
             }
 
-            if f.name in dict:
-                f1_name = dict[f.name]
+            if folder_name in dict:
+                f1_name = dict[folder_name]
 
             arr =[]
             for app in sf_apps:
@@ -134,30 +153,28 @@ def get_accounts_info(folder, isAPI):
                     arr.append(app['url'])
 
             application_url = arr
+        
+        # normalized JSON folder name 
+        folder_normalized = folder_name
+        if folder_name == 'eliotrope':
+            folder_normalized = 'eliotrop'
+        elif folder_name == 'demo_rp':
+            folder_normalized = 'demofinal'
+        elif folder_name == 'demo_agency':
+            folder_normalized = 'demoagency'
+        elif folder_name == 'interfacespain':
+            folder_normalized = 'interface'
+        elif folder_name == 'oxfaminternational':
+            folder_normalized = 'oxfamiternational'
 
-        # Get Ubermetrics info 
+        # get Ubermetrics info 
         ub_info = None
-        if f.name == 'eliotrope':
-            folder_name = 'eliotrop'
-        elif f.name == 'demo_rp':
-            folder_name = 'demofinal'
-        elif f.name == 'demo_agency':
-            folder_name = 'demoagency'
-        elif f.name == 'interfacespain':
-            folder_name = 'interface'
-        else:
-            folder_name = f.name
-
         for ub_account in ub_accounts:
-            if ub_account[0].replace('-Augure','').lower() == folder_name.lower():
-                ub_login = ub_account[1] if (isAPI.lower() == 'true') else ub_account[0]
-                ub_password = ub_account[2]
-                ub_info = (ub_login, ub_password)
+            if ub_account[0].replace('-Augure','').replace('-API', '').lower() == folder_normalized.lower():
+                ub_info = (ub_account[0], ub_account[1])
                 break
         
-        results.append((filepath, ub_info, folder_name, application_url))
-    
-    return results
+        return (folder_path, ub_info, folder_normalized, application_url)
 
 def get_JSON_filepaths(folder):   
     paths = [] 
@@ -198,14 +215,3 @@ def normalized(s):
         s_diacritics_removed = unidecode.unidecode(s)
         return s_diacritics_removed.translate ({ord(c): "" for c in " '""!@#$%^&*()[]{};:,./<>?\\|`~-=_+"}).lower().capitalize()
     return s
-
-def write_augure_apps():
-    apps = get_sf_applications()
-    
-    print('save to augure.apps.csv...')
-    f = open('./output/augure.apps.csv', 'w+', encoding="utf-8")
-    f.write('id\tname\turl\tfrontServer\tbackServer\tlanguage\taccount_name_\taccount_tier\n')
-    for app in apps:
-        tier = app['account']['tier'] if app['account']['tier'] is not None else ''
-        f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + tier + '\n')
-    f.close()
