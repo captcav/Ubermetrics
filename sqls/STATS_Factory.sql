@@ -27,8 +27,11 @@ FROM (
 		AND C.Customer_Name not like ('Augure_SC_SerenaCapital%')
 		AND (CF.Source_Path not like '%TNUMwYVhbpHyC1499hLHg%' AND CF.Source_Path not like '%89OUIOT1aNoiaOzgwc3Z3.%' AND CF.Source_Path not like '%hUMGarN5saOGVMdY0nFBl%' AND CF.Source_Path not like '%qqmZ45uOR6PKMn6A8bjCl%' AND CF.Source_Path not like '%8.IiIU0QnNtiwkkyJmnsz%' AND CF.Source_Path not like '%vMPdTxFkHFk33OtRyZiO1%' AND CF.Source_Path not like '%VcpTfxgmjLWDLtx1ET3W31%' AND CF.Source_Path not like '%P5CGVMY6ttVr9TsbetXN4%' AND CF.Source_Path not like '%1S31uLsX1M44P8ubj8Sfj0%' AND CF.Source_Path not like '%4nQGMTr4Jn4DJAUBEczVl.%') --exclude Imente_MRA
 		AND (CF.Source_Path not like '%Km2JJoZLO6ZKX8DNCh53I1%' AND CF.Source_Path not like '%G9eVA5cFUc3fYcX5wcC9Q1%' AND CF.Source_Path not like '%1lIsVO.Njk5z8hLg2EbVv0%' AND CF.Source_Path not like '%adb0nEeCcD0d8aPscl6tF0%' AND CF.Source_Path not like '%P6XmeoV2PSg27Mz1xkmjU0%' AND CF.Source_Path not like '%Rs4RWTqKCVVW8xX3Ocq40%' AND CF.Source_Path not like '%02f3FKpgQG0AArsAR7Tmv1%' AND CF.Source_Path not like '%W5DYza6TcoEu.sX2y1NbX.%' AND CF.Source_Path not like '%Zx7GtSDHm3NF5swoQudL7.%' AND CF.Source_Path not like '%JL9n2gCILnefWsYMDKyU0%' AND CF.Source_Path not like '%rnTE9UAjvm1yiH1.AYPl.0%' AND CF.Source_Path not like '%Hol.nCIM9.WAG8w.GInuF%' AND CF.Source_Path not like '%3.4manlLkmtij.rAWjURj.%' AND CF.Source_Path not like '%kxdKm4Tbi8gr9dw5nGgih0%') -- exclude DEVA
-		AND (CF.Source_Path not like '%FKPgzH02kfpjns9H2Jlt%' AND CF.Source_Path not like '%IfgLR3ZKSWlSuFLXzLqUx%' AND CF.Source_Path not like '%sPV7TObGsjtzk20bmrdo%' AND CF.Source_Path not like  '%41lEOrySl6piCQY5dUiYU%') -- exclude Respol
+--		AND (CF.Source_Path not like '%FKPgzH02kfpjns9H2Jlt%' AND CF.Source_Path not like '%IfgLR3ZKSWlSuFLXzLqUx%' AND CF.Source_Path not like '%sPV7TObGsjtzk20bmrdo%' AND CF.Source_Path not like  '%41lEOrySl6piCQY5dUiYU%') -- exclude Respol
 		AND (CF.Source_Path not like '%WWlJsLSAqR1DVmRbRh.GT.%' AND CF.Source_Path not like '%88Cbc2FVgKX662TqNatd.%' AND CF.Source_Path not like '%DcoEWKOXIR6YXoFDznQt%') --exclude Endesa
+		AND (CF.Source_Path not like '%ZWfTE0KeFzOmRskQqheo.%') --exclude Imente_Artelier_LaboratoriosQuinton
+		AND (CF.Source_Path not like '%7hLwqORNEUWoJ.b7gNpjz1%') -- exclude Imente_DemoAuto_SM
+		AND (CF.Source_Path not like '%lvRd2VAkWbwbtXG8QwKK%') -- exclude Imente_DemoListen_VehiculesElectriques_ok
 ) AS T 
 ORDER BY T.Customer_Name
 
