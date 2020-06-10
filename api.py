@@ -67,22 +67,25 @@ def get_search_tree(options):
         "items": tree['items']
     }
 
-def get_ub_active_accounts():
+def get_ub_active_accounts(isAPI:bool):
     print('retrieve accounts list from Ubermetrics Google Sheet...')
-    accounts = get_ubermetrics_accounts()
+    ub_accounts = get_ubermetrics_accounts()
 
-    tmp = list(map(lambda row:[row[0], row[1], os.getenv("UB_ACCOUNT_PASSWORD"), row[2]], accounts))
-    tmp.append(['demoagency', 'demoagency', 'demo2020', 'in use'])
-    tmp.append(['demofinal', 'demofinal', 'demo2020', 'in use'])
+    accounts = []
+    for row in ub_accounts:
+        if len(row) == 3 and (row[2]=='in use' or row[2] == 'Account created'):
+            accounts.append([row[1] if isAPI else row[0], os.getenv("UB_DEFAULT_PASSWORD"), row[2]])  
+    accounts.append(['demoagency', 'demo2020', 'in use'])
+    accounts.append(['demofinal', 'demo2020', 'in use'])
 
-    return filter(lambda row:row[3] == 'in use', tmp)
+    return accounts 
 
 def get_sf_applications():
     print('retrieve Publisher applications from Salesforce...')
     return api_salesforce.get_sf_apps()
 
 def get_accounts_info(folder, isAPI): 
-    ub_accounts = list(get_ub_active_accounts())
+    ub_accounts = list(get_ub_active_accounts(isAPI))
     sf_apps = get_sf_applications()
     
     results = []

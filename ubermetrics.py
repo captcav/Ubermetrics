@@ -16,15 +16,15 @@ def try_connect(login, password):
     except Exception as ex:
         return str(ex)
 
-def check_active_accounts(isAPI):
-    accounts = api.get_ub_active_accounts()
+def check_active_accounts(isAPI:bool):
+    accounts = api.get_ub_active_accounts(isAPI)
     for account in accounts:
-        login = account[1] if (isAPI.lower() == 'true') else account[0]
-        password = account[2]
+        login = account[0]
+        password = account[1]
         print('connect to ' + login + ': ' + try_connect(login, password))
 
-def print_active_accounts():
-    accounts = api.get_ub_active_accounts()
+def print_active_accounts(isAPI:bool):
+    accounts = api.get_ub_active_accounts(isAPI)
     for account in accounts:
         print(account)
 
@@ -68,71 +68,48 @@ def write_node(node, f, str = ''):
         for child in node.children:
             write_node(child, f, str)
 
-def get_configs(isAPI):
+def get_configs(isAPI:bool):
     print('building configuration...')
 
-    accounts = api.get_ub_active_accounts()
+    accounts = api.get_ub_active_accounts(isAPI)
     root = Tree({"name":"root", "label":"root","type":"root"}, children=None)
 
     for account in accounts:
-        login = account[1] if (isAPI.lower() == 'true') else account[0]
-        password = account[2]
+        login = account[0]
+        password = account[1]
         print('--- get configuration for ' + login + '/' + password + '...')
         config = build_config(login, password)
         if config is not None:
             root.add_child(config)
     return root
 
-def dump_all_configs(isAPI):
+def dump_configs(isAPI):
     print('dumping configs to csv...')
 
-    tree=get_configs (isAPI)  
-    f = open('./output/ubermetrics.csv', 'w+', encoding="utf-8")
-    for child in tree.children:
-        write_node(child, f)
-    f.close()
-
-def save_configs_to_cache(isAPI):
-    print('saving configs to cache...')
-    
-    tree = get_configs(isAPI)
-    afile = open(r'ubermetrics.pkl', 'wb')
-    pickle.dump(tree, afile)
-    afile.close()
-
-def save_cache_to_csv():
-    f = open(r'ubermetrics.pkl', 'rb')
-    tree = pickle.load(f)
-    f.close()
-
-    print('saving cache to csv...')
+    tree=get_configs(isAPI)  
     f = open('./output/ubermetrics.csv', 'w+', encoding="utf-8")
     for child in tree.children:
         write_node(child, f)
     f.close()
 
 try:
-    if sys.argv[1] == '-dump-all':
-        dump_all_configs(sys.argv[2])
-    elif sys.argv[1] == '-cfg-to-cache':
-        save_configs_to_cache(sys.argv[2])
-    elif sys.argv[1] == '-cache-to-csv':
-        save_cache_to_csv()
-    elif sys.argv[1] == '-print':
-        print_active_accounts()
+    action = sys.argv[1]
+    isAPI = True
+    if len(sys.argv) == 3:
+        isAPI = sys.argv[2].lower() == 'true'
+
+    if sys.argv[1] == '-print':
+        print_active_accounts(isAPI)
     elif sys.argv[1] == '-check':
-        check_active_accounts(sys.argv[2])
+        check_active_accounts(isAPI)
+    elif sys.argv[1] == '-dump':
+        dump_configs(isAPI)
     else:
         raise Exception("action undefined: " + sys.argv[1]) 
 except Exception as ex:
     print(ex)
-    print("usage: python ubermetrics.py <action> <path_to_folder> <isAPI>")
-    print("      actions :")
-    print("          -dump-all : dump all Ubermetrics platform in ubermetrics.csv")
-    print("          -cfg-to-cache : dump all Ubermtrics platform in ubermetrics.pkl")
-    print("          -cache-to-csv : dump the cache in ubermetrics.csv")
-    print("          -print : display all Ubermetrics accounts in the console")
-    print("          -check : try to connect to all Ubermetrics accounts")
-    print("      path_to_folder : path to the JSON configuration files' folder")
-    print("      isAPI : boolean. Use API account or customer account ?")
+    print("usage: python ubermetrics.py <action> [options]")
+    print("   -print : display Ubermetrics accounts in the console")
+    print("   -check [API accounts: True|False] : try to connect to Ubermetrics accounts")
+    print("   -dump [API accounts: True|False] : dump Ubermetrics accounts configuration in ubermetrics.csv")    
     
