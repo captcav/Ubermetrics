@@ -1,15 +1,15 @@
 use UbermetricsMigration
 
-DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = (SELECT CAST(DATEDIFF(SECOND,'1970-01-01',GETUTCDATE ()) AS nvarchar(10)))
+DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637272281670000000' -- http://www.datetimetoticks-converter.com/
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @SCHEDULE_STATUS as bit = 0
 
-DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/factory2'
+DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/uberfactory'
 DECLARE @sql as nvarchar(max) = ''
 DECLARE @counter_done as int = 0
 DECLARE @counter_not_done as int = 0
 
-PRINT 'USE Factory_migration'
+PRINT 'USE UberFactory'
 PRINT 'BEGIN TRAN' 
 
 -- CREATE A NEW PROVIDER UBERMETRICS  --
@@ -35,6 +35,7 @@ DECLARE @ub_password as nvarchar(255)
 DECLARE @factory_customer_id as nvarchar(255)
 DECLARE @factory_customer_name as nvarchar(255)
 DECLARE @factory_destination_path as nvarchar(255)	
+DECLARE @factory_monitor_key as nvarchar(255)
 DECLARE @destination_path AS nvarchar(500)
 DECLARE @factory_application_url as nvarchar(500)
 DECLARE @application_url as nvarchar(500)
@@ -53,7 +54,7 @@ SELECT DISTINCT  ff.Customer_ID, ff.Customer_Name, ff.Destination_Path
 	WHEN acc.[app_url] = '???' OR acc.[app_url] IS NULL OR LEN(acc.[app_url])=0 THEN aa.[url]
 	ELSE acc.[app_url]
 END as 'url_selected'
-, ub.json_customer_id, ub.json_customer_name, ub.[json_customer_name_normalized], ub.json_feed_id, ub.json_feed_name, ub.[json_feed_name_normalized], ub.ub_login, ub.ub_password, ub.ub_name
+, ub.json_customer_id, ub.json_customer_name, ub.[json_customer_name_normalized], ub.json_feed_id, ub.json_feed_name, ub.[json_feed_name_normalized], ub.ub_login, ub.ub_password, ub.ub_name, ff.Monitor_Key
 FROM factory_feeds ff
 	LEFT JOIN [dbo].[matchings.all] ub ON ff.Monitor_Key = ub.json_feed_key
 	LEFT JOIN [ub.accounts] acc ON acc.login = ub.ub_login
@@ -61,7 +62,7 @@ FROM factory_feeds ff
 ORDER BY ub_login, json_customer_id, json_feed_id
 
 OPEN customer_cursor
-FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_name, @factory_destination_path, @factory_application_url, @json_customer_id, @json_customer_name, @json_customer_name_normalized, @json_feed_id, @json_feed_name, @json_feed_name_normalized, @ub_login, @ub_password, @ub_folder_id
+FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_name, @factory_destination_path, @factory_application_url, @json_customer_id, @json_customer_name, @json_customer_name_normalized, @json_feed_id, @json_feed_name, @json_feed_name_normalized, @ub_login, @ub_password, @ub_folder_id, @factory_monitor_key
 
 PRINT 'DECLARE @newCustomerID as int;'
 PRINT 'DECLARE @old_schedule_id as int;'
@@ -104,9 +105,9 @@ END
 	ELSE 
 	BEGIN 
 		SET @counter_not_done = @counter_not_done + 1
-		PRINT '-- ' + @factory_customer_name + ' (ID=' + CAST(@factory_customer_id as nvarchar(10)) + ')-> Search not Found'
+		PRINT '-- ' + @factory_customer_name + ' (ID=' + CAST(@factory_customer_id as nvarchar(10)) + ') - ' + ISNULL(@json_feed_id,'') + ' - ' + ISNULL(@factory_monitor_key,'') + ' -> Search not Found'
 	END
-	FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_name, @factory_destination_path, @factory_application_url, @json_customer_id, @json_customer_name, @json_customer_name_normalized, @json_feed_id, @json_feed_name, @json_feed_name_normalized, @ub_login, @ub_password, @ub_folder_id
+	FETCH NEXT FROM customer_cursor INTO @factory_customer_id, @factory_customer_name, @factory_destination_path, @factory_application_url, @json_customer_id, @json_customer_name, @json_customer_name_normalized, @json_feed_id, @json_feed_name, @json_feed_name_normalized, @ub_login, @ub_password, @ub_folder_id, @factory_monitor_key
 END 
 CLOSE customer_cursor
 DEALLOCATE customer_cursor

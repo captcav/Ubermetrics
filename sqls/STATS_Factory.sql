@@ -32,14 +32,15 @@ FROM (
 ) AS T 
 ORDER BY T.Customer_Name
 
+-- Nb articles.
+SELECT COUNT(*) as 'nb_articles_total' FROM [dbo].[SOURCE_CLIPS] clip
 
-
-
-SELECT count(*) as nb_pige_total 
-FROM [dbo].[SOURCE_CLIPS] clip
-		INNER JOIN CUSTOMERS C ON C.Customer_ID=clip.Customer_ID
-		INNER JOIN SCHEDULE S ON S.Customer_ID=C.Customer_ID
-WHERE clip.Provider_ID in (261,481) AND S.Schedule_Status=1
+-- Nb articles per day.
+SELECT 	CONVERT(varchar, [Process_Date], 111) as process_date, 
+		COUNT(Source_Clips_ID) as 'nb_articles'
+FROM [UberFactory].[dbo].[SOURCE_CLIPS] 
+GROUP BY CONVERT(varchar, [Process_Date], 111) 
+ORDER BY CONVERT(varchar, [Process_Date], 111) ASC
 
 SELECT C.Customer_Name 
 	, CF.Source_Path

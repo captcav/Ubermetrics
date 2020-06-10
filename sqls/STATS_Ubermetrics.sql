@@ -23,7 +23,8 @@ FROM (
 ) as T
 
 -- Missing JSON Factory's feeds definition.
-SELECT DISTINCT ff.Customer_Name, ff.Monitor_Key, ff.ProviderFTP + ff.Source_Path as 'feed_url', ff.ApplicationName, ma.json_feed_key
+/*
+SELECT DISTINCT ff.Customer_Name, ff.Source_Path as 'feed_url', ff.Monitor_Key, ff.ProviderFTP + ff.Source_Path as 'feed_url', ff.ApplicationName, ma.json_feed_key
 FROM factory_feeds ff
 	LEFT JOIN [matchings.all] ma ON ff.[Monitor_Key]=ma.[json_feed_key] 
 WHERE ma.json_feed_key IS NULL 
@@ -36,7 +37,7 @@ FROM factory_feeds ff
 WHERE ma.ub_login IS  NULL
 AND ma.json_feed_key IS NOT NULL
 ORDER BY ma.json_file_path
-
+*/
 
 -- NEWSLETTERS 
 SELECT 
@@ -64,10 +65,11 @@ FROM (
 ) AS T
 
 -- Newsletter's feeds missing in the UM platform.
+/*
 SELECT DISTINCT ma.json_file_path, ma.json_customer_id, ma.json_customer_name, ma.json_feed_id, ma.json_feed_name
 FROM json_newsletters jnl 
 	INNER JOIN [matchings.all] ma ON jnl.feed_id=ma.json_feed_id WHERE ub_login IS NULL
-
+*/		
 -- Repartition par folder
 SELECT T.* 
 FROM (

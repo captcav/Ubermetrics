@@ -91,9 +91,7 @@ def get_accounts_info(folder, isAPI):
 
         # Get Application URL 
         application_url = []
-        if f.name == 'mapfre':
-            application_url.append("http://mapfre.hosting.augure.com/Augure_Mapfre")
-        elif f.name == 'marco':
+        if f.name == 'marco':
             application_url.append("http://marcodecomunicacion.hosting.augure.com/Augure_MdCom")
         elif f.name == 'demo_agency':
             application_url.append('https://demo.hosting.augure.com/Demo_Agencia')
@@ -103,12 +101,13 @@ def get_accounts_info(folder, isAPI):
             application_url.append('http://ra.hosting.augure.com/Augure_RA')   
         elif f.name == 'elanedelman':
             application_url.append('http://agenceee.hosting.augure.com/Augure_EE')
+        # elif f.name == 'mapfre':
+        #     application_url.append("http://mapfre.hosting.augure.com/Augure_Mapfre")
         elif f.name != 'france' and f.name != 'spain':
             f1_name = f.name
             f1_name = unidecode.unidecode(f.name)
 
             dict = {
-                "beaulolais": "beaujolais",
                 "bursonmarstelleremea":"bmie",
                 "elanedelman":"Elan Edelman",
                 "spencerlewis":"Spencer & Lewis",
@@ -141,6 +140,8 @@ def get_accounts_info(folder, isAPI):
             folder_name = 'demofinal'
         elif f.name == 'demo_agency':
             folder_name = 'demoagency'
+        elif f.name == 'interfacespain':
+            folder_name = 'interface'
         else:
             folder_name = f.name
 
