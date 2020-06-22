@@ -38,12 +38,12 @@ ORDER BY T.Customer_Name
 -- Nb articles.
 SELECT COUNT(*) as 'nb_articles_total' FROM [dbo].[SOURCE_CLIPS] clip
 
--- Nb articles per day.
-SELECT 	CONVERT(varchar, [Process_Date], 111) as process_date, 
+-- Nb articles per day in the UberFactory.
+SELECT 	CONVERT(varchar, [Process_Date], 23) as process_date, 
 		COUNT(Source_Clips_ID) as 'nb_articles'
 FROM [UberFactory].[dbo].[SOURCE_CLIPS] 
-GROUP BY CONVERT(varchar, [Process_Date], 111) 
-ORDER BY CONVERT(varchar, [Process_Date], 111) ASC
+GROUP BY CONVERT(varchar, [Process_Date], 23) 
+ORDER BY CONVERT(varchar, [Process_Date], 23) ASC
 
 SELECT C.Customer_Name 
 	, CF.Source_Path

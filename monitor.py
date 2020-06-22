@@ -3,51 +3,52 @@ import sys
 import os
 import json
 import api
+import commons
 
 def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv): 
     for (k, v) in newsletters.items():
         line = k 
-        line += '\t' + api.get_prop('newsletter_name', v)
-        line += '\t' + api.get_prop('subject', v)
-        line += '\t' + api.get_prop('design_format', v)
-        line += '\t' + api.get_prop('design_title', v)
-        line += '\t' + api.get_prop('logoUrl', v)
-        line += '\t' + api.get_prop('primaryColor', v)
-        line += '\t' + api.get_prop('hour', v)
-        line += '\t' + api.get_prop('min', v)
-        line += '\t' + api.get_prop('hour2', v)
-        line += '\t' + api.get_prop('min2', v)
-        line += '\t' + api.get_prop('valuation_to_show', v)
-        line += '\t' + api.get_prop('order_by', v)
-        line += '\t' + api.get_prop('grouping', v)
-        line += '\t' + api.get_prop('num_mentions', v)
-        line += '\t' + api.get_prop('email_to', v)
-        line += '\t' + api.get_prop('email_remitent', v)
-        line += '\t' + api.get_prop('selection', v)
-        line += '\t' + api.get_prop('name_remitent', v)
-        line += '\t' + api.get_prop('charset', v)
-        line += '\t' + api.get_prop('type', v)
-        line += '\t' + api.join_prop('days', v, '|')
+        line += '\t' + commons.get_prop('newsletter_name', v)
+        line += '\t' + commons.get_prop('subject', v)
+        line += '\t' + commons.get_prop('design_format', v)
+        line += '\t' + commons.get_prop('design_title', v)
+        line += '\t' + commons.get_prop('logoUrl', v)
+        line += '\t' + commons.get_prop('primaryColor', v)
+        line += '\t' + commons.get_prop('hour', v)
+        line += '\t' + commons.get_prop('min', v)
+        line += '\t' + commons.get_prop('hour2', v)
+        line += '\t' + commons.get_prop('min2', v)
+        line += '\t' + commons.get_prop('valuation_to_show', v)
+        line += '\t' + commons.get_prop('order_by', v)
+        line += '\t' + commons.get_prop('grouping', v)
+        line += '\t' + commons.get_prop('num_mentions', v)
+        line += '\t' + commons.get_prop('email_to', v)
+        line += '\t' + commons.get_prop('email_remitent', v)
+        line += '\t' + commons.get_prop('selection', v)
+        line += '\t' + commons.get_prop('name_remitent', v)
+        line += '\t' + commons.get_prop('charset', v)
+        line += '\t' + commons.get_prop('type', v)
+        line += '\t' + commons.join_prop('days', v, '|')
         if 'list' in v:
             line += '\t' + str(len(v['email_list_to']))
         else:
             line += '\t'
-        line += '\t' + api.join_prop('email_list_to', v, ';')
+        line += '\t' + commons.join_prop('email_list_to', v, ';')
 
         if 'feeds' not in v:
-            csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + api.normalized(nameCustomer) + '\t' + line + '\t\t\t\t\t\t\t\t\n')
+            csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + commons.normalized(nameCustomer) + '\t' + line + '\t\t\t\t\t\t\t\t\n')
         else:
             feeds = v['feeds']
             for (ke, va) in feeds.items():
                 feedLine = ke   
-                feedLine += '\t' + api.get_prop('valuation_to_show', va)
-                feedLine += '\t' + api.get_prop('order_by', va)
-                feedLine += '\t' + api.get_prop('selection', va)
-                feedLine += '\t' + api.get_prop('grouping', va)
-                feedName = api.get_prop('feedName', va)         
-                feedLine += '\t' + feedName + '\t' + api.normalized(feedName)
-                feedLine += '\t' + api.get_prop('num_mentions', va)
-                csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + api.normalized(nameCustomer) + '\t' + line + '\t' + feedLine + '\n')
+                feedLine += '\t' + commons.get_prop('valuation_to_show', va)
+                feedLine += '\t' + commons.get_prop('order_by', va)
+                feedLine += '\t' + commons.get_prop('selection', va)
+                feedLine += '\t' + commons.get_prop('grouping', va)
+                feedName = commons.get_prop('feedName', va)         
+                feedLine += '\t' + feedName + '\t' + commons.normalized(feedName)
+                feedLine += '\t' + commons.get_prop('num_mentions', va)
+                csv.write(filePath + '\t' + idCustomer + '\t' + nameCustomer + '\t' + commons.normalized(nameCustomer) + '\t' + line + '\t' + feedLine + '\n')
 
 def dump_newsletters(json_paths):
     print('extracting newsletters from JSON files csv...')
@@ -71,8 +72,8 @@ def dump_newsletters(json_paths):
                     module =item['module']
                     if 'newsletter' in module:
                         newsletters = module['newsletter']
-                        nameCustomer = api.get_prop('nameCustomer', item)
-                        idCustomer = api.get_prop('idCustomer', item)
+                        nameCustomer = commons.get_prop('nameCustomer', item)
+                        idCustomer = commons.get_prop('idCustomer', item)
                         dump_newsletter(filePath,idCustomer, nameCustomer, newsletters, csv)
     csv.close()
 
@@ -96,8 +97,8 @@ def dump_feeds(json_paths):
                     continue
                 
                 if 'nameCustomer' in item:
-                    idCustomer = api.get_prop('idCustomer', item)
-                    nameCustomer = api.get_prop('nameCustomer', item)
+                    idCustomer = commons.get_prop('idCustomer', item)
+                    nameCustomer = commons.get_prop('nameCustomer', item)
                 elif 'feedID' in item:
                     if 'publications' in item:
                         publications = item['publications']
@@ -115,7 +116,7 @@ try:
     if len(sys.argv) < 3:
         raise Exception('missing argument')
     
-    json_paths = api.get_JSON_filepaths(sys.argv[2])
+    json_paths = commons.get_json_filepath(sys.argv[2])
 
     if sys.argv[1] == '-newsletters':
         dump_newsletters(json_paths)

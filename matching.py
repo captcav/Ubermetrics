@@ -91,10 +91,10 @@ class Feed(object):
         self.file_path = file_path
         self.customer_id = customer_id
         self.customer_name = customer_name
-        self.customer_name_normalized = api.normalized(customer_name)
+        self.customer_name_normalized = commons.normalized(customer_name)
         self.feed_id = feed_id
         self.feed_name = feed_name
-        self.feed_name_normalized = api.normalized(feed_name)
+        self.feed_name_normalized = commons.normalized(feed_name)
         self.feed_property = feed_property
         self.feed_key = feed_key
         self.feed_format = feed_format
@@ -110,7 +110,7 @@ class Feed(object):
 
 def extract_monitor_feeds(folder_path):
     feeds = []
-    json_paths = api.get_JSON_filepaths(folder_path)
+    json_paths = commons.get_json_filepath(folder_path)
     for filePath in json_paths:
         with open(filePath) as json_file:
             data = None
@@ -126,8 +126,8 @@ def extract_monitor_feeds(folder_path):
                 if item is None:
                     continue
                 if 'nameCustomer' in item:
-                    idCustomer = api.get_prop('idCustomer', item)
-                    nameCustomer = api.get_prop('nameCustomer', item)
+                    idCustomer = commons.get_prop('idCustomer', item)
+                    nameCustomer = commons.get_prop('nameCustomer', item)
                 elif 'feedID' in item:
                     if 'publications' in item:
                         publications = item['publications']
