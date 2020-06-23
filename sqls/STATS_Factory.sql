@@ -1,4 +1,11 @@
 USE Factory
+-- Extract media's name from Factory's articles 
+SELECT T.media_name, count(T.clip) FROM (
+	SELECT DISTINCT TOP 100000 News_File.value('declare namespace bw="http://www.augure.com/2008/ClippingIntegration"; (//bw:NewsItem/bw:Media/bw:Name)[1]','nvarchar(max)') as 'media_name', Clipping_ID as clip FROM CLIPPINGS
+) AS T 
+GROUP BY T.media_name
+HAVING count(T.clip)>500
+
 
 -- Active Monitor feeds in the Factory
 SELECT T.*

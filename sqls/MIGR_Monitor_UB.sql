@@ -1,6 +1,6 @@
 use UbermetricsMigration
 
-DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637272281670000000' -- http://www.datetimetoticks-converter.com/
+DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637285241680000000' -- http://www.datetimetoticks-converter.com/
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @SCHEDULE_STATUS as bit = 0
 
