@@ -292,7 +292,7 @@ except Exception as ex:
     print("          -match : dump all matches between Monitor feeds to Ubermetrics searches in matchings.all.csv")
     print("          -write-accounts : write customer info in ub.accounts.csv")
     print("          -print-accounts : print customer info")
-    print("          -augure-apps: write publisher apps info in augure.app.csv")
+    print("          -write-augure-apps: write publisher apps info in augure.app.csv")
     print("      path_to_folder : path to the JSON configuration files' folder")
     print("      isAPI : boolean. Use API account or customer account ?")
             

@@ -4,7 +4,7 @@ DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637285241680000000' -- ht
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @SCHEDULE_STATUS as bit = 0
 
-DECLARE @destination_path_base as nvarchar(255) = 'http://data.augure.com/uberfactory'
+DECLARE @destination_path_base as nvarchar(255) = 'https://data.hosting.augure.com/uberfactory'
 DECLARE @sql as nvarchar(max) = ''
 DECLARE @counter_done as int = 0
 DECLARE @counter_not_done as int = 0
