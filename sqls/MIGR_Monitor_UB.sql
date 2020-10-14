@@ -1,6 +1,6 @@
 use UbermetricsMigration
 
-DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637285241680000000' -- http://www.datetimetoticks-converter.com/
+DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637371072000000000' -- http://www.datetimetoticks-converter.com/
 DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
 DECLARE @SCHEDULE_STATUS as bit = 0
 
@@ -80,13 +80,13 @@ BEGIN
 	IF @ub_folder_id IS NOT NULL 
 	BEGIN 
 		DECLARE @normalizedCustomerFolderName as nvarchar(500) = @provider_name + '_' + REPLACE(@ub_login,'-Augure-API','') + '_' +  @json_customer_name_normalized + @json_feed_name_normalized
-		DECLARE @ub_api as nvarchar(500) = '/v2/mentions?searches.id=' + cast(@ub_folder_id as nvarchar(20)) + '&updated.geq={0}' --&highlights=true&highlightTag=b'
+		DECLARE @ub_api as nvarchar(500) = '/v2/mentions?searches.id=' + cast(@ub_folder_id as nvarchar(20)) + '&document.published.geq={0}' --&highlights=true&highlightTag=b'
 		SET @destination_path= @destination_path_base + '/' + @normalizedCustomerFolderName + '/feed.xml'
 
 		-- Table CUSTOMERS
 		SET @sql = 'INSERT INTO CUSTOMERS (Customer_Name, SourceConnectionProtocol, SourceConnectionUrl, SourceConnectionUsername , SourceConnectionPassword, Destination_Path, FeedVersion, FeedClipDays, Customer_Status, ApplicationUrl, Provider_Id) '
 		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',''' + REPLACE(@json_feed_name, '''','') + ''',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, ' + CAST(@factory_customer_id AS nvarchar(20)) + ', ''factory'', ''' + @destination_path + ''',''' + @factory_destination_path + ''',''' + @factory_application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_feed_name, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
-		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''', 2, 5, 1, ''' + @factory_application_url + ''',@ProviderID);'
+		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''', 2, 1, 1, ''' + @factory_application_url + ''',@ProviderID);'
 		SET @sql = @sql + 'SET @newCustomerID=(SELECT MAX(new_customer_id) FROM ub_new_customers);'
 
 		-- Table CUSTOMER_FILE_DETAILS
@@ -138,7 +138,7 @@ BEGIN
 	IF @ub_folder_id IS NOT NULL 
 	BEGIN 
 		SET @normalizedCustomerFolderName = @provider_name + '_' + REPLACE(@ub_login,'-Augure-API', '') + '_' +  @json_customer_name_normalized + @json_feed_name_normalized
-		SET @ub_api = '/v2/mentions?searches.id=' + cast(@ub_folder_id as nvarchar(20)) + '&updated.geq={0}' --&highlights=true&highlightTag=b'
+		SET @ub_api = '/v2/mentions?searches.id=' + cast(@ub_folder_id as nvarchar(20)) + '&document.published.geq={0}' --&highlights=true&highlightTag=b'
 		SET @destination_path= @destination_path_base + '/' + @normalizedCustomerFolderName + '/feed.xml'
 		
 		-- Try to find a Publisher application from login or existing Factory feeds
@@ -165,7 +165,7 @@ BEGIN
 		-- Table CUSTOMERS
 		SET @sql = 'INSERT INTO CUSTOMERS (Customer_Name,  SourceConnectionProtocol, SourceConnectionUrl, SourceConnectionUsername , SourceConnectionPassword, Destination_Path, FeedVersion, FeedClipDays, Customer_Status, ApplicationUrl, Provider_Id) '
 		SET @sql = @sql + 'OUTPUT ' + @json_feed_id + ',''' + REPLACE(@json_feed_name, '''','') + ''',' + CAST(@json_customer_id as nvarchar(20)) + ',''' + @json_customer_name_normalized + ''', INSERTED.Customer_ID, @ProviderID, NULL, ''newsletter'', ''' + @destination_path + ''',NULL,''' + @application_url + ''',''' + @ub_login + ''',''' + @ub_folder_id + ''' INTO ub_new_customers (monitor_feed_id, monitor_feed_name, monitor_customer_id, monitor_customer_name, new_customer_id, new_provider_id, old_customer_id, type, new_destination_path, old_destination_path, augure_application, ub_login, ub_search_id) '
-		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''',2,5,1,''' + @application_url + ''', @ProviderID);'
+		SET @sql = @sql + 'VALUES (''' + @normalizedCustomerFolderName + ''',''REST'', ''https://api.ubermetrics-technologies.com'',''' + @ub_login + ''',''' + @ub_password + ''',''' + @destination_path + ''',2,1,1,''' + @application_url + ''', @ProviderID);'
 		SET @sql = @sql + 'SET @newCustomerID=(SELECT MAX(new_customer_id) FROM ub_new_customers);'
 
 		-- Table CUSTOMER_FILE_DETAILS

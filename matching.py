@@ -253,7 +253,7 @@ def write_augure_apps(apps_file_path:str='./output/augure.apps.csv'):
     
     print('save to ' + apps_file_path + '...')
     f = open(apps_file_path, 'w+', encoding="utf-8")
-    f.write('id\tname\turl\tfrontServer\tbackServer\tlanguage\taccount_name_\taccount_tier\n')
+    f.write('id\tname\turl\tfrontServer\tbackServer\tlanguage\taccount_name\taccount_tier\n')
     for app in apps:
         tier = app['account']['tier'] if app['account']['tier'] is not None else ''
         f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + tier + '\n')
