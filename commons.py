@@ -3,23 +3,19 @@ import os
 
 def get_prop(property, obj):
     if property in obj:
-        value = obj[property]
-        if value is None: 
-            return ''
-        else:
-            return value
+        return obj[property]
     else:
-        return ''
+        return None
 
 def join_prop(property, obj, sep):
     if property in obj:
         values = obj[property]
         if values is None: 
-            return ''
+            return None
         else:
             return sep.join(values)
     else:
-        return ''
+        return None
 
 def normalized(s):
     if s is not None:

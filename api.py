@@ -8,6 +8,8 @@ import unidecode
 import commons
 from api_google_sheet import get_ubermetrics_accounts
 import api_salesforce
+import pyodbc 
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -175,3 +177,167 @@ def process_account(folder_name:str, folder_path:str, ub_accounts:list, sf_apps:
                 break
         
         return (folder_path, ub_info, folder_normalized, application_url)
+
+def save_ub_accounts(accounts):
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+    
+    cursor = conn.cursor()
+    stmt = """DELETE FROM dbo.[ub.accounts]"""
+    cursor.execute(stmt)
+    
+    stmt = """INSERT INTO dbo.[ub.accounts] (provider_name, login, password, app_url, folder_path) VALUES (?, ?, ?, ?, ?)"""
+    cursor.executemany(stmt, accounts)
+    conn.commit()
+    conn.close()
+    print('deleting exiting entries and inserting {} new entries into dbo.[ub.accounts]'.format(len(accounts)))
+   
+def save_augure_apps(apps):
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+    
+    cursor = conn.cursor()
+    stmt = """DELETE FROM dbo.[augure.apps]"""
+    cursor.execute(stmt)
+    
+    stmt = """INSERT INTO dbo.[augure.apps] (id, name, url, frontServer, backServer, language, account_name,account_tier) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+    cursor.executemany(stmt, apps)
+    conn.commit()
+    conn.close()
+    print('deleting existing entries and inserting {} new entries into dbo.[augure.apps]'.format(len(apps)))
+
+def get_factory_feeds():
+    stmt = ("SELECT T.*"
+            ", LEFT(SUBSTRING(T.Source_Path, CHARINDEX('clau=', T.Source_Path)+5, 100), CHARINDEX('&', SUBSTRING(T.Source_Path, CHARINDEX('clau=', T.Source_Path)+5, 100))-1) as Monitor_Key"
+            " FROM ("
+	        " SELECT CF.Customer_ID"
+	        ", C.Customer_Name"
+        	", C.Destination_Path"
+        	", P.ProviderFTP"
+        	", REPLACE(REPLACE(CF.Source_Path,'ecode.cgi?', 'ccode.cgi?clau='),'ccode.cgi?lvRd2VAkWbwbtXG8QwKK','ccode.cgi?clau=lvRd2VAkWbwbtXG8QwKK') + '&' as Source_Path"
+        	", C.ApplicationUrl"
+        	", CASE "
+        	"   WHEN ApplicationURL IS NULL OR LEN(ApplicationUrl)=0 THEN SUBSTRING(Customer_Name,1, CHARINDEX('_', Customer_Name, 8) - 1)"
+        	"   ELSE SUBSTRING(ApplicationUrl, CHARINDEX('/', ApplicationUrl,10) +1, 100)"
+        	" END as 'ApplicationName'"
+        	" FROM [Factory].[dbo].[CUSTOMER_FILE_DETAILS] CF"
+        	"       INNER JOIN SCHEDULE S ON S.Customer_ID=CF.Customer_ID"
+        	"       INNER JOIN CUSTOMERS C ON C.Customer_ID=CF.Customer_ID"
+        	"       INNER JOIN [PROVIDER] P ON P.Provider_ID = C.Provider_Id"
+        	"   WHERE C.Provider_Id in (261, 481)  AND S.Schedule_Status=1"
+        	"   AND C.Customer_Name not like ('Imente_DKV_%')"
+        	"   AND C.Customer_Name not like ('Augure_Pandora_%')"
+        	"   AND C.Customer_Name not like ('Augure_GStarRAW_%')"
+        	"   AND C.Customer_Name not like ('Imente_MRA_Glashutte%')"
+        	"   AND C.Customer_Name not like ('Imente_Artelier_Frinsa%')"
+        	"   AND C.Customer_Name not like ('Augure_SC_SerenaCapital%')"
+        	"   AND (CF.Source_Path not like '%TNUMwYVhbpHyC1499hLHg%' AND CF.Source_Path not like '%89OUIOT1aNoiaOzgwc3Z3.%' AND CF.Source_Path not like '%hUMGarN5saOGVMdY0nFBl%' AND CF.Source_Path not like '%qqmZ45uOR6PKMn6A8bjCl%' AND CF.Source_Path not like '%8.IiIU0QnNtiwkkyJmnsz%' AND CF.Source_Path not like '%vMPdTxFkHFk33OtRyZiO1%' AND CF.Source_Path not like '%VcpTfxgmjLWDLtx1ET3W31%' AND CF.Source_Path not like '%P5CGVMY6ttVr9TsbetXN4%' AND CF.Source_Path not like '%1S31uLsX1M44P8ubj8Sfj0%' AND CF.Source_Path not like '%4nQGMTr4Jn4DJAUBEczVl.%') " #exclude Imente_MRA
+        	"   AND (CF.Source_Path not like '%Km2JJoZLO6ZKX8DNCh53I1%' AND CF.Source_Path not like '%G9eVA5cFUc3fYcX5wcC9Q1%' AND CF.Source_Path not like '%1lIsVO.Njk5z8hLg2EbVv0%' AND CF.Source_Path not like '%adb0nEeCcD0d8aPscl6tF0%' AND CF.Source_Path not like '%P6XmeoV2PSg27Mz1xkmjU0%' AND CF.Source_Path not like '%Rs4RWTqKCVVW8xX3Ocq40%' AND CF.Source_Path not like '%02f3FKpgQG0AArsAR7Tmv1%' AND CF.Source_Path not like '%W5DYza6TcoEu.sX2y1NbX.%' AND CF.Source_Path not like '%Zx7GtSDHm3NF5swoQudL7.%' AND CF.Source_Path not like '%JL9n2gCILnefWsYMDKyU0%' AND CF.Source_Path not like '%rnTE9UAjvm1yiH1.AYPl.0%' AND CF.Source_Path not like '%Hol.nCIM9.WAG8w.GInuF%' AND CF.Source_Path not like '%3.4manlLkmtij.rAWjURj.%' AND CF.Source_Path not like '%kxdKm4Tbi8gr9dw5nGgih0%') " #exclude DEVA
+        	"   AND (CF.Source_Path not like '%WWlJsLSAqR1DVmRbRh.GT.%' AND CF.Source_Path not like '%88Cbc2FVgKX662TqNatd.%' AND CF.Source_Path not like '%DcoEWKOXIR6YXoFDznQt%') " #exclude Endesa
+        	"   AND (CF.Source_Path not like '%ZWfTE0KeFzOmRskQqheo.%') " #exclude Imente_Artelier_LaboratoriosQuinton
+        	"   AND (CF.Source_Path not like '%7hLwqORNEUWoJ.b7gNpjz1%') " #exclude Imente_DemoAuto_SM
+        	"   AND (CF.Source_Path not like '%lvRd2VAkWbwbtXG8QwKK%') " # exclude Imente_DemoListen_VehiculesElectriques_ok
+            ") AS T "
+            "ORDER BY T.Customer_Name")
+    
+    serverName='ah0801.hosting.augure.com'
+    databaseName='Factory'
+    userId = os.getenv("SQL_USERID")
+    password = os.getenv("SQL_PASSWORD")
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'UID=' + userId + ';'
+                'PWD=' + password + ';')
+
+    cursor = conn.cursor()
+    cursor.execute(stmt)
+    result = cursor.fetchall()
+
+    print("retrieving {} feeds from the Factory".format(len(result)))
+    return result
+
+def save_factory_feeds(feeds):
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+    
+    cursor = conn.cursor()
+    stmt = """DELETE FROM dbo.[factory_feeds]"""
+    cursor.execute(stmt)
+    
+    stmt = """INSERT INTO dbo.[factory_feeds] (Customer_ID, Customer_Name, Destination_Path, ProviderFTP, Source_Path, ApplicationUrl, ApplicationName, Monitor_Key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+    cursor.executemany(stmt, feeds)
+    conn.commit()
+    conn.close()
+    print('deleting existing entries and inserting {} new entries into dbo.[factory_feeds]'.format(len(feeds)))
+
+def save_monitor_newsletters(newsletters):
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+    
+    cursor = conn.cursor()
+    stmt = """DELETE FROM dbo.[json_newsletters]"""
+    cursor.execute(stmt)
+    
+    stmt = ("INSERT INTO [dbo].[json_newsletters]"
+           "([file_path]"
+           ",[idCustomer]"
+           ",[name_customer]"
+           ",[normalized_customer_name]"
+           ",[newsletter_id]"
+           ",[newsletter_name]"
+           ",[newsletter_subject]"
+           ",[newsletter_design_format]"
+           ",[newsletter_design_title]"
+           ",[logo_url]"
+           ",[primary_color]"
+           ",[newsletter_hour]"
+           ",[newsletter_min]"
+           ",[newsletter_hour2]"
+           ",[newsletter_min2]"
+           ",[newsletter_valuation_to_show]"
+           ",[newsletter_order_by]"
+           ",[newsletter_grouping]"
+           ",[newsletter_num_mentions]"
+           ",[newsletter_email_to]"
+           ",[newsletter_email_remitent]"
+           ",[newsletter_selection]"
+           ",[newsletter_name_remitent]"
+           ",[newsletter_charset]"
+           ",[newsletter_type]"
+           ",[newsletter_days]"
+           ",[newsletter_nb_list_to]"
+           ",[newsletter_list_to]"
+           ",[feed_id]"
+           ",[feed_valuation_to_show]"
+           ",[feed_order_by]"
+           ",[feed_selection]"
+           ",[feed_grouping]"
+           ",[feed_feedName]"
+           ",[normalized_feedName]"
+           ",[feed_num_mentions])"
+           " VALUES "
+           "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    
+    cursor.executemany(stmt, newsletters)
+    conn.commit()
+    conn.close()
+    print('deleting existing entries and inserting {} new entries into dbo.[json.newsletters]'.format(len(newsletters)))
+ 
+

@@ -12,30 +12,30 @@ ROLLBACK TRAN
 
 
 -- MIGRATION 01-10-2020
-SELECT * FROM [UbermetricsMigration].[dbo].[augure.apps]
-WHERE 
-[name] in (
-	'15 Love', 
-	'IDEEAL CONSEIL',
-	'ACF',
-	'ATOS', 
-	'Musée de la Chasse et de la Nature', 
-	'Fenwick Linde', 
-	'FONDATION EDF',
-	'INRA',
-	'institut montaigne',
-	'La Plagne',
-	'Mazda',
-	'Agence Raoul',
-	'sanef',
-	'terre majeure',
-	'Versailles Grand Parc',
-	'Château de Versailles',
-	'Vinci autoroutes - Autoroutes du sud de la France',
-	'Vox&Co',
-	'Agence Cartel',
-	'Agence Olivia Payerne'
-) 
+	SELECT * FROM [UbermetricsMigration].[dbo].[augure.apps]
+	WHERE 
+	[name] in (
+		'15 Love', 
+		'IDEEAL CONSEIL',
+		'ACF',
+		'ATOS', 
+		'Musée de la Chasse et de la Nature', 
+		'Fenwick Linde', 
+		'FONDATION EDF',
+		'INRA',
+		'institut montaigne',
+		'La Plagne',
+		'Mazda',
+		'Agence Raoul',
+		'sanef',
+		'terre majeure',
+		'Versailles Grand Parc',
+		'Château de Versailles',
+		'Vinci autoroutes - Autoroutes du sud de la France',
+		'Vox&Co',
+		'Agence Cartel',
+		'Agence Olivia Payerne'
+	) 
 
 SELECT TOP (1000) [monitor_feed_id]
       ,[monitor_feed_name]
@@ -74,3 +74,24 @@ WHERE augure_application in (
 	,'https://15love.hosting.augure.com/Augure_15Love'
 )
 ORDER BY augure_application
+
+
+
+-- MIGRATION 25-11-2020
+	SELECT * FROM [UbermetricsMigration].[dbo].[augure.apps]
+	WHERE 
+	[name] in (
+		'Keima',
+		'Adocom',
+		'Eliotrope'
+	) 
+
+-- MIGRATION 01-12-2020
+SELECT * FROM [UbermetricsMigration].[dbo].[augure.apps]
+WHERE [name] in (
+		'Alima',
+		'CRC',
+		'LITTLE WING',
+		'Santé Publique France',
+		'Volvo'
+)

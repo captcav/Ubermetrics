@@ -1,0 +1,33 @@
+-- Migration 1/10
+https://acf.hosting.augure.com/Augure_ACF
+https://cartel.hosting.augure.com/Augure_Cartel
+https://oliviapayerne.hosting.augure.com/Augure_OP
+https://raoul.hosting.augure.com/Augure_Raoul
+https://atos.hosting.augure.com/Augure_Atos
+https://versailles.hosting.augure.com/Augure_Versailles
+https://fenwick.hosting.augure.com/Augure_Fenwick
+https://edf.hosting.augure.com/Augure_FondationEDF
+https://ideealconseil.hosting.augure.com/Augure_IdeealConseil
+https://inra.hosting.augure.com/Augure_INRA
+https://institut-montaigne.hosting.augure.com/Augure_InstitutMontaigne
+https://la-plagne.hosting.augure.com/Augure_LaPlagne
+https://mazda.hosting.augure.com/Augure_Mazda
+https://chassenature.hosting.augure.com/Augure_CN
+https://sanef.hosting.augure.com/Augure_SANEF
+https://terremajeure.hosting.augure.com/Augure_TerreMajeure
+https://versaillesagglo.hosting.augure.com/Augure_VGP
+https://vinci.hosting.augure.com/Augure_Vinci
+https://voxco.hosting.augure.com/Augure_VoxCo
+https://15love.hosting.augure.com/Augure_15Love
+
+-- Migration 25/11 
+https://adocom.hosting.augure.com/Augure_Adocom
+https://eliotrope.hosting.augure.com/Augure_Eliotrope
+https://keima.hosting.augure.com/Augure_Keima
+
+-- Migration 1/12 
+https://alima.hosting.augure.com/Augure_Alima
+https://crc-communication.hosting.augure.com/Augure_CRC
+https://littlewing.hosting.augure.com/Augure_LittleWing
+https://santepubliquefrance.hosting.augure.com/Augure_SPF
+https://volvo.hosting.augure.com/Augure_Volvo
