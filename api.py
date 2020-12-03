@@ -292,7 +292,7 @@ def save_monitor_newsletters(newsletters):
                 'Trusted_Connection=yes;')
     
     cursor = conn.cursor()
-    stmt = """DELETE FROM dbo.[json_newsletters]"""
+    stmt = """DELETE FROM [dbo].[json_newsletters]"""
     cursor.execute(stmt)
     
     stmt = ("INSERT INTO [dbo].[json_newsletters]"
@@ -338,6 +338,6 @@ def save_monitor_newsletters(newsletters):
     cursor.executemany(stmt, newsletters)
     conn.commit()
     conn.close()
-    print('deleting existing entries and inserting {} new entries into dbo.[json.newsletters]'.format(len(newsletters)))
+    print('inserting {} rows into [dbo].[json.newsletters]'.format(len(newsletters)))
  
 
