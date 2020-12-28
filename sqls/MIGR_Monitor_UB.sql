@@ -1,7 +1,7 @@
 use UbermetricsMigration
 
-DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637371072000000000' -- http://www.datetimetoticks-converter.com/
-DECLARE @SCHEDULE_START_DATE as nvarchar(10) = (SELECT CAST(CONVERT(date,GETDATE()) AS nvarchar(10)))
+DECLARE @NEXT_INTEGRATION_PARAMETER as nvarchar(10) = '637450560000000000' -- http://www.datetimetoticks-converter.com/
+DECLARE @SCHEDULE_START_DATE as nvarchar(10) = '2021-01-01'
 DECLARE @SCHEDULE_STATUS as bit = 0
 
 DECLARE @destination_path_base as nvarchar(255) = 'https://data.hosting.augure.com/uberfactory'

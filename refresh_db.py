@@ -3,9 +3,15 @@ import sys
 import json
 import api
 import commons
+import matching
 from functools import reduce
 
-from tree import Tree
+import importlib.util
+spec = importlib.util.spec_from_file_location("googleFactory", "C:\\Work\\python\\commons\\google\\GoogleSheetServiceFactory.py")
+googleFactory = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(googleFactory)
+
+#from commons.google.GoogleSheetServiceFactory import WriteCells, CleanCells, CreateSheetFromTemplateIfNotExists
 
 def save_UM(configs):
     values = []
@@ -57,7 +63,6 @@ def extract_all_newsletters(json_paths):
                             for (k, v) in newsletters.items():
                                 if 'feeds' in v:
                                     counter += 1
-
                                     newsletter_id = k
                                     newsletter_name = commons.get_prop('newsletter_name', v)
                                     subject = commons.get_prop('subject', v)
@@ -142,6 +147,34 @@ def extract_all_newsletters(json_paths):
                 print('ERROR extracting newsletters from {0}: {1}'.format(file_path, str(ex)))
     return values
 
+def save_matchings(configs):
+    feeds = []
+    for config in configs:
+        monitor_file_path = config[0]
+        ub_credentials = config[1]
+        matches = matching.do_matching(monitor_file_path, ub_credentials)
+        feeds.extend(matches)
+    data = []
+    for feed in feeds:
+        data.append(feed.toTuple())
+    
+    api.save_all_matchings(data)
+
+def export_to_google():
+    GOOGLE_SHEET_ID="1ydfBWZZ76jtBuuJG3od0X62QSgNiTgddV5PtSb5q7to"  
+    feeds = api.get_normalized_matchings()
+
+    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]    
+    for feed in feeds:
+        data.append([feed[0], feed[1], feed[2], feed[3], feed[4], feed[5], feed[6], feed[7], feed[8], feed[9], feed[10], feed[11]])
+
+    sheetname="migration"
+    cellsRange = sheetname + '!A1:L5000'
+    googleFactory.CleanCells(GOOGLE_SHEET_ID, cellsRange)
+
+    cellsRange = sheetname + '!A1:L{}'.format(len(data))
+    googleFactory.WriteCells(GOOGLE_SHEET_ID, cellsRange, data)
+
 try:
     action = sys.argv[1]
     if action == '-ub':
@@ -157,6 +190,16 @@ try:
         json_paths = commons.get_json_filepath(working_folder)
         result = extract_all_newsletters(json_paths)
         api.save_monitor_newsletters(result)
+    elif action == '-uberfac':
+       api.save_uberfactory_feeds()
+    elif action == '-match':
+        working_folder = sys.argv[2]
+        configs = api.process_all_accounts(working_folder, True)
+        save_matchings(configs)
+    elif action == '-match-norm':
+        api.save_matchings_normalized()
+    elif action == '-google':
+        export_to_google()
     else:
         raise Exception("action undefined: " + sys.argv[1])  
 

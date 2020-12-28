@@ -5,17 +5,20 @@ def get_prop(property, obj):
     if property in obj:
         return obj[property]
     else:
-        return None
+        return ''
 
 def join_prop(property, obj, sep):
     if property in obj:
         values = obj[property]
         if values is None: 
-            return None
+            return ''
         else:
             return sep.join(values)
     else:
-        return None
+        return ''
+
+def var_to_sql(s):
+    return s if len(s) > 0 else None
 
 def normalized(s):
     if s is not None:
@@ -23,9 +26,12 @@ def normalized(s):
         return s_diacritics_removed.translate ({ord(c): "" for c in " '""!@#$%^&*()[]{};:,./<>?\\|`~-=_+"}).lower().capitalize()
     return s
 
-def get_folder_name(folder_path): 
-    parts = folder_path.split('\\')
-    return parts[len(parts)-1]
+def get_folder_name(path): 
+    parts = path.split('\\')
+    if os.path.isdir(path):
+        return parts[len(parts)-1]
+    elif os.path.isfile(path):
+        return parts[len(parts)-2]
 
 def get_json_filepath(folder):   
     paths = [] 

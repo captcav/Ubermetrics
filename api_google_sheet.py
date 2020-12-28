@@ -7,7 +7,7 @@ from google.auth.transport.requests import Request
 from dotenv import load_dotenv
 load_dotenv()
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 def GoogleSheetServiceFactory():
     """Shows basic usage of the Sheets API.
