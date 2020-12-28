@@ -4,14 +4,11 @@ import json
 import api
 import commons
 import matching
-from functools import reduce
 
 import importlib.util
 spec = importlib.util.spec_from_file_location("googleFactory", "C:\\Work\\python\\commons\\google\\GoogleSheetServiceFactory.py")
 googleFactory = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(googleFactory)
-
-#from commons.google.GoogleSheetServiceFactory import WriteCells, CleanCells, CreateSheetFromTemplateIfNotExists
 
 def save_UM(configs):
     values = []
@@ -160,21 +157,6 @@ def save_matchings(configs):
     
     api.save_all_matchings(data)
 
-def export_to_google():
-    GOOGLE_SHEET_ID="1ydfBWZZ76jtBuuJG3od0X62QSgNiTgddV5PtSb5q7to"  
-    feeds = api.get_normalized_matchings()
-
-    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]    
-    for feed in feeds:
-        data.append([feed[0], feed[1], feed[2], feed[3], feed[4], feed[5], feed[6], feed[7], feed[8], feed[9], feed[10], feed[11]])
-
-    sheetname="migration"
-    cellsRange = sheetname + '!A1:L5000'
-    googleFactory.CleanCells(GOOGLE_SHEET_ID, cellsRange)
-
-    cellsRange = sheetname + '!A1:L{}'.format(len(data))
-    googleFactory.WriteCells(GOOGLE_SHEET_ID, cellsRange, data)
-
 try:
     action = sys.argv[1]
     if action == '-ub':
@@ -199,7 +181,7 @@ try:
     elif action == '-match-norm':
         api.save_matchings_normalized()
     elif action == '-google':
-        export_to_google()
+        api.export_to_google()
     else:
         raise Exception("action undefined: " + sys.argv[1])  
 

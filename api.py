@@ -6,13 +6,52 @@ import hashlib
 import os
 import unidecode
 import commons
-from api_google_sheet import get_ubermetrics_accounts
-import api_salesforce
+import importlib.util
+import requests
+
+spec = importlib.util.spec_from_file_location("googleFactory", "C:\\Work\\python\\commons\\google\\GoogleSheetServiceFactory.py")
+googleFactory = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(googleFactory)
+
 import pyodbc 
 
 from dotenv import load_dotenv
 load_dotenv()
 
+# --------------------
+# CONNECT GOOGLE API 
+# --------------------
+def get_ub_active_accounts(isAPI:bool):
+    print('retrieve accounts list from Ubermetrics Google Sheet...')
+    spreadsheetId = "1NLsvmdM0tauh1iC7YnsRLai9KPFfsbZkimCtzh7KJoM"
+    rangesheet = "Sheet1!A2:C92"
+    ub_accounts = googleFactory.GetCells(spreadsheetId, rangesheet)
+    accounts = []
+    for row in ub_accounts:
+        if len(row) == 3 and (row[2]=='in use' or row[2] == 'Account created'):
+            accounts.append([row[1] if isAPI else row[0], os.getenv("UB_DEFAULT_PASSWORD"), row[2]])  
+    accounts.append(['demoagency', 'demo2020', 'in use'])
+    accounts.append(['demofinal', 'demo2020', 'in use'])
+    return accounts 
+
+def export_to_google():
+    spreadsheetId="1ydfBWZZ76jtBuuJG3od0X62QSgNiTgddV5PtSb5q7to"
+    sheetname="migration"
+
+    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]        
+    feeds = get_normalized_matchings()
+    for feed in feeds:
+        data.append([feed[0], feed[1], feed[2], feed[3], feed[4], feed[5], feed[6], feed[7], feed[8], feed[9], feed[10], feed[11]])
+
+    cellsRange = sheetname + '!A1:L5000'
+    googleFactory.CleanCells(spreadsheetId, cellsRange)
+    cellsRange = sheetname + '!A1:L{}'.format(len(data))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, data)
+
+
+# --------------------------
+# CONNECT UBERMETRICS  API 
+# --------------------------
 def request_api(params):
     url = os.getenv("UB_API_ENDPOINT")
     encoded_params = urllib.parse.urlencode(params)
@@ -70,23 +109,19 @@ def get_search_tree(options):
         "items": tree['items']
     }
 
-def get_ub_active_accounts(isAPI:bool):
-    print('retrieve accounts list from Ubermetrics Google Sheet...')
-    ub_accounts = get_ubermetrics_accounts()
 
-    accounts = []
-    for row in ub_accounts:
-        if len(row) == 3 and (row[2]=='in use' or row[2] == 'Account created'):
-            accounts.append([row[1] if isAPI else row[0], os.getenv("UB_DEFAULT_PASSWORD"), row[2]])  
-    accounts.append(['demoagency', 'demo2020', 'in use'])
-    accounts.append(['demofinal', 'demo2020', 'in use'])
-
-    return accounts 
-
+# -----------------------
+# CONNECT SALEFORCE API 
+# -----------------------
 def get_sf_applications():
     print('retrieve Publisher applications from Salesforce...')
-    return api_salesforce.get_sf_apps()
+    endpoint = urllib.parse.urljoin(os.getenv("SALESFORCE_ENDPOINT"), 'api/V1/sf/apps') 
+    apps = requests.get(endpoint)
+    return apps.json()
 
+# ------------
+# MIXED CALL  
+# ------------
 def process_all_accounts(working_folder, isAPI): 
     ub_accounts = list(get_ub_active_accounts(isAPI))
     sf_apps = get_sf_applications()
@@ -179,6 +214,9 @@ def process_account(folder_name:str, folder_path:str, ub_accounts:list, sf_apps:
         
         return (folder_path, ub_info, folder_normalized, application_url)
 
+# --------------
+# DATABASE API 
+# --------------
 def save_ub_accounts(accounts):
     serverName='.'
     databaseName='UbermetricsMigration'
