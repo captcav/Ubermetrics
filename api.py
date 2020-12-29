@@ -36,16 +36,32 @@ def get_ub_active_accounts(isAPI:bool):
 
 def export_to_google():
     spreadsheetId="1ydfBWZZ76jtBuuJG3od0X62QSgNiTgddV5PtSb5q7to"
-    sheetname="migration"
+    export_normalized_matching_to_google(spreadsheetId, "Migration")
+    export_non_matched_feeds_to_google(spreadsheetId, "Factory feeds not found in UM")
 
-    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]        
-    feeds = get_normalized_matchings()
-    for feed in feeds:
-        data.append([feed[0], feed[1], feed[2], feed[3], feed[4], feed[5], feed[6], feed[7], feed[8], feed[9], feed[10], feed[11]])
+
+def export_normalized_matching_to_google(spreadsheetId, sheetname):
+    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]
+    
+    items = get_normalized_matchings()
+    for item in items:
+        data.append([item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], item[10], item[11]])
 
     cellsRange = sheetname + '!A1:L5000'
     googleFactory.CleanCells(spreadsheetId, cellsRange)
     cellsRange = sheetname + '!A1:L{}'.format(len(data))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, data)
+
+def export_non_matched_feeds_to_google(spreadsheetId, sheetname):
+    data = [['Customer_ID','Customer_Name','Destination_Path','ProviderFTP','Source_Path','ApplicationUrl','ApplicationName','Monitor_Key']]
+
+    items = get_factory_feeds_not_matched()
+    for item in items:
+        data.append([item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]])
+    
+    cellsRange = sheetname + '!A1:H100'
+    googleFactory.CleanCells(spreadsheetId, cellsRange)
+    cellsRange = sheetname + '!A1:H{}'.format(len(data))
     googleFactory.WriteCells(spreadsheetId, cellsRange, data)
 
 
@@ -108,7 +124,6 @@ def get_search_tree(options):
         "prop_identifier": tree['identifier'],
         "items": tree['items']
     }
-
 
 # -----------------------
 # CONNECT SALEFORCE API 
@@ -468,9 +483,9 @@ def save_matchings_normalized():
                 'Trusted_Connection=yes;')
     cursor = conn.cursor()
     
-    stmt = """DELETE FROM [dbo].[matchings_normalized]"""
-    cursor.execute(stmt)
-    print('deleting existing entries in [dbo].[matchings_normalized]')
+    count_to_delete = get_count("matchings_normalized", cursor)
+    cursor.execute("DELETE FROM [dbo].[matchings_normalized]")
+    print('deleting {0} rows in [dbo].[matchings_normalized]'.format(count_to_delete))
 
     stmt = ("INSERT INTO [dbo].[matchings_normalized] "            
             "SELECT DISTINCT "
@@ -527,10 +542,17 @@ def save_matchings_normalized():
             "	LEFT JOIN [ub.accounts] acc ON acc.[login] = ub.[ub_login]")
     
     cursor.execute(stmt)
+    count_inserted = get_count("matchings_normalized", cursor)
+
     conn.commit()
     conn.close()
-    print('inserting normalized rows into [dbo].[matching_normalized]')
+    print('inserting {0} rows in [dbo].[matchings_normalized]'.format(count_inserted))
     
+def get_count(table_name, cursor):
+    cursor.execute("SELECT COUNT(1) FROM {0};".format(table_name))
+    row = cursor.fetchone()
+    return row[0] if row else None
+
 def get_normalized_matchings():
     serverName='.'
     databaseName='UbermetricsMigration'
@@ -551,10 +573,50 @@ def get_normalized_matchings():
 	    ",[augure_application]"
         ",[factory]"
         ",[newsletter]"
-        "FROM [UbermetricsMigration].[dbo].[matchings_normalized] ORDER BY [monitor_file_path] ASC")
+        "FROM [UbermetricsMigration].[dbo].[matchings_normalized]"
+        "WHERE monitor_feed_id not in (SELECT DISTINCT feed_id FROM uberfactory)"
+        "ORDER BY [monitor_file_path] ASC")
     cursor = conn.cursor()
     cursor.execute(stmt)
     result = cursor.fetchall()
 
-    print("retrieving {} matchings from the UbermetricsMigration".format(len(result)))
+    print("retrieving {} matchings from the Ubermetrics platform".format(len(result)))
+    return result
+
+def get_factory_feeds_not_matched():
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+
+    stmt = ("SELECT [Customer_ID]"
+            ",[Customer_Name]"
+            ",[Destination_Path]"
+            ",[ProviderFTP]"
+            ",[Source_Path]"
+            ",[ApplicationUrl]"
+            ",[ApplicationName]"
+            ",[Monitor_Key]"
+            " FROM factory_feeds ff WHERE Monitor_Key not in (SELECT DISTINCT [monitor_feed_key] FROM [UbermetricsMigration].[dbo].[matchings_normalized] WHERE monitor_feed_key IS NOT NULL)"
+            " ORDER BY ApplicationName ASC;")    
+    cursor = conn.cursor()
+    cursor.execute(stmt)
+    result = cursor.fetchall()
+
+    print("retrieving {} feeds from Factory that are not matched in the Ubermetrics Platform".format(len(result)))
+    return result
+
+def fetch_sql_result(stmt): 
+    serverName='.'
+    databaseName='UbermetricsMigration'
+    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                'Server=' + serverName + ';'
+                'Database=' + databaseName + ';'
+                'Trusted_Connection=yes;')
+    cursor = conn.cursor()
+    cursor.execute(stmt)
+    result = cursor.fetchall()
+
     return result
