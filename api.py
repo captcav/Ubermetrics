@@ -36,33 +36,34 @@ def get_ub_active_accounts(isAPI:bool):
 
 def export_to_google():
     spreadsheetId="1ydfBWZZ76jtBuuJG3od0X62QSgNiTgddV5PtSb5q7to"
+
     export_normalized_matching_to_google(spreadsheetId, "Migration")
     export_non_matched_feeds_to_google(spreadsheetId, "Factory feeds not found in UM")
-
+    export_non_matched_newsletter_search_to_google(spreadsheetId, "Newsletter searches not found in UM")
 
 def export_normalized_matching_to_google(spreadsheetId, sheetname):
-    data = [['json_file_path', 'monitor_feed_id', 'monitor_feed_name', 'monitor_feed_key', 'monitor_customer_id', 'monitor_customer_name', 'ub_login', 'ub_seach_id', 'ub_search_name', 'augure_application', 'factory ?', 'newsletter ?']]
-    
     items = get_normalized_matchings()
-    for item in items:
-        data.append([item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], item[10], item[11]])
 
     cellsRange = sheetname + '!A1:L5000'
     googleFactory.CleanCells(spreadsheetId, cellsRange)
-    cellsRange = sheetname + '!A1:L{}'.format(len(data))
-    googleFactory.WriteCells(spreadsheetId, cellsRange, data)
+    cellsRange = sheetname + '!A1:L{}'.format(len(items))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, items)
 
 def export_non_matched_feeds_to_google(spreadsheetId, sheetname):
-    data = [['Customer_ID','Customer_Name','Destination_Path','ProviderFTP','Source_Path','ApplicationUrl','ApplicationName','Monitor_Key']]
-
     items = get_factory_feeds_not_matched()
-    for item in items:
-        data.append([item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]])
-    
+   
+    cellsRange = sheetname + '!A1:L100'
+    googleFactory.CleanCells(spreadsheetId, cellsRange)
+    cellsRange = sheetname + '!A1:L{}'.format(len(items))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, items)
+
+def export_non_matched_newsletter_search_to_google(spreadsheetId, sheetname):
+    items = get_newsletter_searches_not_matched()
+
     cellsRange = sheetname + '!A1:H100'
     googleFactory.CleanCells(spreadsheetId, cellsRange)
-    cellsRange = sheetname + '!A1:H{}'.format(len(data))
-    googleFactory.WriteCells(spreadsheetId, cellsRange, data)
+    cellsRange = sheetname + '!A1:H{}'.format(len(items))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, items)
 
 
 # --------------------------
@@ -272,7 +273,7 @@ def save_uberfactory_feeds():
     stmt = (" SELECT DISTINCT monitor_feed_id"
             " FROM [CUSTOMERS] c"
 	        "   INNER JOIN SCHEDULE s ON s.Customer_ID = c.Customer_ID"
-	        "   INNER JOIN ub_new_customers u ON u.new_customer_id = c.Customer_ID"
+	        "   INNER JOIN [ub_new_customers.0] u ON u.new_customer_id = c.Customer_ID"
             " WHERE s.Schedule_Status=1")
 
     serverName='ah0801.hosting.augure.com'
@@ -529,6 +530,12 @@ def save_matchings_normalized():
             "							WHEN [json_customer_id] = 34144 THEN 'https://manosunidas.hosting.augure.com/Augure_ManosUnidas'"
             "							WHEN [json_customer_id] = 36001 THEN 'https://tragsa.hosting.augure.com/Augure_Tragsa'"
             "							WHEN [json_customer_id] = 32480 THEN 'https://philips.hosting.augure.com/Augure_Philips'"
+            "                           WHEN [json_customer_id] = 37235 AND [json_feed_id]=1450263082 THEN 'https://esic.hosting.augure.com/Augure_Esic'"
+            "                           WHEN [json_customer_id] = 43077 AND [json_feed_id]=1515767716 THEN 'https://demo.hosting.augure.com/Demo_RP'"
+            "                           WHEN [json_customer_id] = 45119 THEN 'https://havaspr.hosting.augure.com/Augure_HavasPR'"
+            "                           WHEN [json_customer_id] = 34657 THEN 'https://almirall.hosting.augure.com/Augure_Almirall'"
+            "                           WHEN [json_customer_id] = 38891 THEN 'https://swservice.hosting.augure.com/Augure_SWS'"
+            "                           WHEN [json_customer_id] = 45122 THEN 'https://theoria.hosting.augure.com/Augure_Theoria'"
             "							WHEN acc.[app_url] = '???' OR acc.[app_url] IS NULL OR LEN(acc.[app_url])=0 THEN NULL "
             "							ELSE acc.[app_url]"
             "							END,"
@@ -554,58 +561,67 @@ def get_count(table_name, cursor):
     return row[0] if row else None
 
 def get_normalized_matchings():
-    serverName='.'
-    databaseName='UbermetricsMigration'
-    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
-                'Server=' + serverName + ';'
-                'Database=' + databaseName + ';'
-                'Trusted_Connection=yes;')
-
-    stmt = ("SELECT [monitor_file_path]"
+    stmt = ("SELECT [monitor_file_path] as json_file_path"
         ",[monitor_feed_id]"
         ",[monitor_feed_name]"
         ",[monitor_feed_key]"
         ",[monitor_customer_id]"
         ",[monitor_customer_name]"
         ",[ub_login]"
-        ",[ub_name]"
-        ",[ub_label]"
+        ",[ub_name] as ub_search_id"
+        ",[ub_label] as ub_search_name"
 	    ",[augure_application]"
-        ",[factory]"
-        ",[newsletter]"
+        ",[factory] as 'factory ?'"
+        ",[newsletter] as 'newsletter ?'"
         "FROM [UbermetricsMigration].[dbo].[matchings_normalized]"
-        "WHERE monitor_feed_id not in (SELECT DISTINCT feed_id FROM uberfactory)"
-        "ORDER BY [monitor_file_path] ASC")
-    cursor = conn.cursor()
-    cursor.execute(stmt)
-    result = cursor.fetchall()
+        "WHERE monitor_feed_id not in (SELECT DISTINCT feed_id FROM uberfactory)")
+    result = fetch_sql_result(stmt)
 
     print("retrieving {} matchings from the Ubermetrics platform".format(len(result)))
     return result
 
 def get_factory_feeds_not_matched():
-    serverName='.'
-    databaseName='UbermetricsMigration'
-    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
-                'Server=' + serverName + ';'
-                'Database=' + databaseName + ';'
-                'Trusted_Connection=yes;')
-
-    stmt = ("SELECT [Customer_ID]"
-            ",[Customer_Name]"
-            ",[Destination_Path]"
-            ",[ProviderFTP]"
-            ",[Source_Path]"
-            ",[ApplicationUrl]"
-            ",[ApplicationName]"
-            ",[Monitor_Key]"
-            " FROM factory_feeds ff WHERE Monitor_Key not in (SELECT DISTINCT [monitor_feed_key] FROM [UbermetricsMigration].[dbo].[matchings_normalized] WHERE monitor_feed_key IS NOT NULL)"
-            " ORDER BY ApplicationName ASC;")    
-    cursor = conn.cursor()
-    cursor.execute(stmt)
-    result = cursor.fetchall()
-
+    stmt = ("SELECT DISTINCT  ff.Customer_ID as factory_cutomer_id," 
+            "ff.Customer_Name as factory_customer_name,"
+            "ff.Destination_Path as factory_feed_url,"
+            "ff.Monitor_Key as factory_monitor_key,"
+            "CASE   WHEN ub.augure_application IS NOT NULL AND LEN(ub.augure_application)>0 THEN ub.augure_application"
+	        "       ELSE aa.[url]"
+            "END as 'augure_application',"
+            "ub.monitor_customer_id,"
+            "ub.monitor_customer_name,"
+            "ub.monitor_feed_id,"
+            "ub.monitor_feed_name,"
+            "ub.ub_login," 
+            "ub.ub_password,"
+            "ub.ub_name" 
+            " FROM factory_feeds ff"
+	            " LEFT JOIN [dbo].[matchings_normalized] ub ON ff.Monitor_Key = ub.monitor_feed_key"
+	            " LEFT JOIN [augure.apps] aa ON aa.url LIKE '%' + ff.ApplicationName"
+            " WHERE ub.ub_login IS NULL"
+            " ORDER BY ub_login, monitor_customer_id, monitor_feed_id;")    
+    result = fetch_sql_result(stmt)
     print("retrieving {} feeds from Factory that are not matched in the Ubermetrics Platform".format(len(result)))
+    return result
+
+def get_newsletter_searches_not_matched():
+    stmt = ("SELECT DISTINCT ub.monitor_customer_id," 
+            "ub.monitor_customer_name," 
+            "ub.monitor_feed_id," 
+            "ub.monitor_feed_name,"
+            "ub.ub_login,"
+            "ub.ub_password,"
+            "ub.ub_name,"
+            "ub.augure_application"
+            " FROM json_newsletters nl"
+	        "   INNER JOIN [dbo].[matchings_normalized] ub ON nl.feed_id = ub.monitor_feed_id"
+            " WHERE ub.monitor_feed_id NOT IN ("
+            "	SELECT DISTINCT ub.monitor_feed_id FROM [dbo].[matchings_normalized] ub "
+		    "       INNER JOIN factory_feeds ff ON ub.monitor_feed_key = ff.Monitor_Key)"
+            " AND ub.ub_login IS NULL"
+            " ORDER BY ub_login, monitor_customer_id, monitor_feed_id")
+    result = fetch_sql_result(stmt)
+    print("retrieving {} searches for newletters that are not matched in the Ubermetrics Platform".format(len(result)))
     return result
 
 def fetch_sql_result(stmt): 
@@ -617,6 +633,13 @@ def fetch_sql_result(stmt):
                 'Trusted_Connection=yes;')
     cursor = conn.cursor()
     cursor.execute(stmt)
-    result = cursor.fetchall()
 
-    return result
+    data = []    
+    items = cursor.fetchall()
+    headers = [column[0] for column in cursor.description]
+    data.append(headers)
+    for item in items:
+        row = [value for value in item]
+        data.append(row)
+   
+    return data
