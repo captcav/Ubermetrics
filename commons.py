@@ -1,5 +1,6 @@
 import unidecode
 import os
+import csv
 
 def get_prop(property, obj):
     if property in obj:
@@ -18,6 +19,8 @@ def join_prop(property, obj, sep):
         return ''
 
 def var_to_sql(s):
+    if s is None:
+        s=''
     return s if len(s) > 0 else None
 
 def normalized(s):
@@ -27,6 +30,9 @@ def normalized(s):
     return s
 
 def get_folder_name(path): 
+    if path is None:
+        return None
+
     parts = path.split('\\')
     if os.path.isdir(path):
         return parts[len(parts)-1]
@@ -46,3 +52,13 @@ def get_json_filepath(folder):
             paths.append(os.path.join(folder, f.name))
     
     return paths
+
+def extract_csv_to_tuples(filepath:str, sep:str):
+    if not os.path.isfile(filepath):
+        print("{} not found".format(filepath))
+    
+    data = []
+    with open(filepath, newline='') as csvfile:
+        data=[tuple(line) for line in csv.reader(csvfile,delimiter=';')]
+    return data
+    

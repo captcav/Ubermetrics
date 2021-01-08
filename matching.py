@@ -239,3 +239,15 @@ def do_matching(monitor_file_path, ub_credentials):
     match_feeds(feeds, searches, None) 
 
     return feeds
+
+def do_matching_from_file(ub_login:str, ub_password:str, feeds:list):
+    print('----> requesting Ubermetrics searches for (' + ub_login + ', ' + ub_password + ')...')
+    searches = dump_ubermetrics_searches(ub_login, ub_password)
+    #print_node(searches)
+
+    for feed in feeds:
+        search = search_by_label(feed.feed_name, searches)
+        if search is not None:
+            feed.ub_label = search.label
+            feed.ub_name = search.name
+            feed.ub_type = search.type

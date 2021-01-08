@@ -72,7 +72,7 @@ def extract_all_newsletters(json_paths):
                                     hour2 = commons.get_prop('hour2', v)
                                     min2 = commons.get_prop('min2', v)
                                     valuation_to_show = commons.get_prop('valuation_to_show', v)
-                                    order_by = commons.get_prop('order_by', v)
+                                    order_by = commons.join_prop('orderShowSearch', v, '|')
                                     grouping = commons.get_prop('grouping', v)
                                     num_mentions = commons.get_prop('num_mentions', v)
                                     email_to = commons.get_prop('email_to', v)
@@ -157,6 +157,22 @@ def save_matchings(configs):
     
     api.save_all_matchings(data)
 
+def save_matchings_from_file(ub_login, ub_password, file_path):
+    data = commons.extract_csv_to_tuples(file_path, ";")
+    feeds = []
+    for row in data[1:]:
+        feed = matching.Feed(None, None, row[2] + row[3], None, row[4])
+        feed.ub_login = ub_login
+        feed.ub_password = ub_password
+        feeds.append(feed)
+
+    data = []
+    matching.do_matching_from_file(ub_login, ub_password, feeds)
+    for feed in filter(lambda x:x.ub_name is not None, feeds):
+        data.append(feed.toTuple())
+    
+    return data
+        
 try:
     action = sys.argv[1]
     if action == '-ub':
@@ -178,6 +194,12 @@ try:
         working_folder = sys.argv[2]
         configs = api.process_all_accounts(working_folder, True)
         save_matchings(configs)
+    elif action == '-match-file':
+        ub_login = sys.argv[2]
+        ub_password = sys.argv[3] 
+        file_path = sys.argv[4] 
+        data = save_matchings_from_file(ub_login, ub_password, file_path)
+        api.save_all_matchings(data)
     elif action == '-match-norm':
         api.save_matchings_normalized()
     elif action == '-google':

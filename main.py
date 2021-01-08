@@ -3,7 +3,7 @@ import sys
 import json
 import api
 import commons
-from matching import do_matching 
+from matching import do_matching, do_matching_from_file, Feed
 
 def write_matchings_internal(monitor_file_path, ub_credentials, f):
     monitor_folder_name = commons.get_folder_name(monitor_file_path)
@@ -53,6 +53,8 @@ def write_augure_apps(apps_file_path:str='./output/augure.apps.csv'):
         f.write(app['id'] + '\t' + app['name'] + '\t' + app['url'] + '\t' + app['frontServer'] + '\t' + app['backServer'] + '\t' + app['language'] + '\t' + app['account']['name'] + '\t' + tier + '\n')
     f.close()
 
+
+
 try:
     action = sys.argv[1]
     isAPI = True
@@ -77,7 +79,6 @@ try:
     elif action == '-match-one':
         configs = api.process_one_account(working_folder, isAPI)
         write_matchings(configs)
-
     else:
         raise Exception("action undefined: " + sys.argv[1])  
 except Exception as ex:

@@ -19,7 +19,7 @@ def dump_newsletter(filePath, idCustomer, nameCustomer, newsletters, csv):
         line += '\t' + commons.get_prop('hour2', v)
         line += '\t' + commons.get_prop('min2', v)
         line += '\t' + commons.get_prop('valuation_to_show', v)
-        line += '\t' + commons.get_prop('order_by', v)
+        line += '\t' + commons.join_prop('orderShowSearch', v, '|')
         line += '\t' + commons.get_prop('grouping', v)
         line += '\t' + commons.get_prop('num_mentions', v)
         line += '\t' + commons.get_prop('email_to', v)
