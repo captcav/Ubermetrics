@@ -65,6 +65,11 @@ def export_non_matched_newsletter_search_to_google(spreadsheetId, sheetname):
     cellsRange = sheetname + '!A1:H{}'.format(len(items))
     googleFactory.WriteCells(spreadsheetId, cellsRange, items)
 
+def export_um_augure_to_google(items, spreadsheetId, sheetname):
+    cellsRange = sheetname + '!A1:K5000'
+    googleFactory.CleanCells(spreadsheetId, cellsRange)
+    cellsRange = sheetname + '!A1:K{}'.format(len(items))
+    googleFactory.WriteCells(spreadsheetId, cellsRange, items)
 
 # --------------------------
 # CONNECT UBERMETRICS  API 
@@ -101,12 +106,12 @@ def connect(login, password):
         "auth_tokens": data['auth_tokens']
     }
 
-def get_search_tree(options):
+def get_search_tree(params):
     response = request_api({
         'action':'get_search_tree', 
-        'user_id': options["user_id"], 
-        'session_id': options["session_id"], 
-        'auth_token': options["auth_token"],
+        'user_id': params["user_id"], 
+        'session_id': params["session_id"], 
+        'auth_token': params["auth_token"],
         'marked':-1, 
         'sentiment': -1, 
         'read': -1, 
@@ -575,7 +580,7 @@ def get_normalized_matchings():
         ",[newsletter] as 'newsletter ?'"
         "FROM [UbermetricsMigration].[dbo].[matchings_normalized]"
         "WHERE monitor_feed_id not in (SELECT DISTINCT feed_id FROM uberfactory)")
-    result = fetch_sql_result(stmt)
+    result = fetch_sql_result(stmt, os.getenv("MIGRATION_SQL_CONNECTION"))
 
     print("retrieving {} matchings from the Ubermetrics platform".format(len(result)))
     return result
@@ -600,7 +605,7 @@ def get_factory_feeds_not_matched():
 	            " LEFT JOIN [augure.apps] aa ON aa.url LIKE '%' + ff.ApplicationName"
             " WHERE ub.ub_login IS NULL"
             " ORDER BY ub_login, monitor_customer_id, monitor_feed_id;")    
-    result = fetch_sql_result(stmt)
+    result = fetch_sql_result(stmt, os.getenv("MIGRATION_SQL_CONNECTION"))
     print("retrieving {} feeds from Factory that are not matched in the Ubermetrics Platform".format(len(result)))
     return result
 
@@ -620,17 +625,114 @@ def get_newsletter_searches_not_matched():
 		    "       INNER JOIN factory_feeds ff ON ub.monitor_feed_key = ff.Monitor_Key)"
             " AND ub.ub_login IS NULL"
             " ORDER BY ub_login, monitor_customer_id, monitor_feed_id")
-    result = fetch_sql_result(stmt)
+    result = fetch_sql_result(stmt, os.getenv("MIGRATION_SQL_CONNECTION"))
     print("retrieving {} searches for newletters that are not matched in the Ubermetrics Platform".format(len(result)))
     return result
 
-def fetch_sql_result(stmt): 
-    serverName='.'
-    databaseName='UbermetricsMigration'
-    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
-                'Server=' + serverName + ';'
-                'Database=' + databaseName + ';'
-                'Trusted_Connection=yes;')
+def get_sourceIDs(customerId):
+    stmt = "SELECT Source_ID FROM SOURCE_CLIPS WHERE Customer_ID={0} ORDER BY Process_Date DESC".format(customerId)
+    result = fetch_sql_result(stmt, os.getenv("FACTORY_SQL_CONNECTION"))
+    print("{0} clips loaded from database Factory".format(len(result)))
+    return result
+
+def get_pigeIDs(contratPige, startDate, endDate):
+    stmt = "SELECT _c_PROVIDERIDFOURNISSEUR FROM pige WHERE _c_CONTRATPIGE = {0} and  DateParution Between '{1}' AND '{2}'".format(contratPige, startDate, endDate)
+    result = fetch_sql_result(stmt, connection_string=os.getenv("AUGURE_SQL_CONNECTION"))
+    print("{0} piges loaded from database Augure".format(len(result)))
+    return result
+
+def get_piges_count(contract, startDate, endDate, augure_connection):
+    contrat_id = contract['augure']['CodeContrat']
+    stmt = "SELECT COUNT(codePige) FROM pige WHERE _c_CONTRATPIGE = {0} and  DateCreation>='{1}' AND DateCreation<='{2}'".format(contrat_id, startDate, endDate)
+    return fetch_scalar(stmt, augure_connection)
+    
+def count_existing_filelog(customer_file_Id, docId):
+    stmt = "SELECT count(Log_Id) FROM FileLog WHERE Customer_File_ID={0} AND File_Name='{1}.xml'".format(customer_file_Id, docId)
+    return fetch_scalar(stmt, os.getenv("FACTORY_SQL_CONNECTION"))
+
+def get_customer_ID(customer_file_Id):
+    stmt = "SELECT Customer_ID FROM CUSTOMER_FILE_DETAILS WHERE Customer_File_ID={0}".format(customer_file_Id)
+    return fetch_scalar(stmt, os.getenv("FACTORY_SQL_CONNECTION"))
+
+def get_augure_applications():
+    stmt = "SELECT [url], [backServer] FROM [dbo].[augure.apps]"
+    result = fetch_sql_result(stmt, connection_string=os.getenv("MIGRATION_SQL_CONNECTION"))
+    print("{0} applications loaded".format(len(result)))
+    return result
+
+def get_all_feeds(augure_connection_string):
+    contracts = fetch_all_contrat_piges(augure_connection_string)
+    for contract in contracts:
+        fetch_factory_configuration(contract, os.getenv("FACTORY_SQL_CONNECTION"))
+    return contracts
+
+def get_feed_info(feed_url:str):
+    return get_feed_info_internal(feed_url, os.getenv("AUGURE_SQL_CONNECTION"), os.getenv("FACTORY_SQL_CONNECTION"))
+
+def get_feed_info_internal(feed_url:str, augure_connection_string:str, factory_connection_string):
+    feedInfo = fetch_contrat_pige(feed_url, augure_connection_string)
+    fetch_factory_configuration(feedInfo, factory_connection_string)
+    return feedInfo
+
+def fetch_all_contrat_piges(connection_string):
+    contracts = []
+    stmt = "SELECT CodeContrat, LibelleContrat, _c_CLIENT_FEED FROM ContratPige WHERE _c_CLIENT_FEED like 'https://data.hosting.augure.com/uberfactory/%'"
+    for contract in fetch_sql_result(stmt, connection_string)[1:]:
+        contracts.append({
+            "augure": {
+                "CodeContrat":contract[0],
+                "Name":contract[1],
+                "Url":contract[2]
+            },
+            "factory": {}
+        })
+    return contracts
+
+def fetch_contrat_pige(feed_url, connection_string):
+    stmt = "SELECT CodeContrat, LibelleContrat, _c_CLIENT_FEED FROM ContratPige WHERE _c_CLIENT_FEED='{0}'".format(feed_url)
+    result = fetch_sql_result(stmt, connection_string)[1:2]
+    return {
+        "augure": {
+            "CodeContrat":result[0],
+            "Name":result[1],
+            "Url":result[2]
+        },
+        "factory": {}
+    }
+
+def fetch_factory_configuration(contract, connection_string):
+    stmt = ("SELECT c.Customer_ID," 
+    "c.Customer_Name,"
+    "c.Destination_Path,"
+    "c.applicationUrl,"
+    "'SourceConnectionUrl' = CASE WHEN c.SourceConnectionUrl IS NULL THEN p.ProviderFTP ELSE c.SourceConnectionUrl END,"
+    "'SourceConnectionUserName' = CASE WHEN c.sourceConnectionUserName IS NULL THEN p.ProviderFTPUser ELSE c.sourceConnectionUserName END,"
+    "'SourceConnectionPassword' = CASE WHEN c.SourceConnectionPassword IS NULL THEN p.ProviderFTPPassword ELSE c.SourceConnectionPassword END,"
+    "cfd.Customer_File_ID,"
+    "cfd.Source_Path,"
+    "cfd.NextIntegrationParameter "
+    "FROM CUSTOMERS c"
+    "   INNER JOIN CUSTOMER_FILE_DETAILS cfd ON c.Customer_ID=cfd.Customer_ID"
+    "   INNER JOIN PROVIDER p on p.Provider_ID=c.Provider_Id"
+    "   WHERE c.Destination_Path='{0}'").format(contract['augure']['Url'])
+
+    for customer in fetch_sql_result(stmt, connection_string)[1:]:
+        contract["factory"] = {
+            "Customer_ID":customer[0],
+            "Customer_Name":customer[1],
+            "Destination_Path":customer[2],
+            "ApplicationUrl":customer[3],
+            "SourceConnectionUrl":customer[4],
+            "SourceConnectionUserName":customer[5],
+            "SourceConnectionPassword":customer[6],
+            "Customer_File_ID":customer[7],
+            "Source_Path":customer[8],
+            "Search_ID":customer[8].replace("/v2/mentions?searches.id=","").replace("&created.geq={0}", ""),
+            "NextIntegrationParameter":customer[9]
+        }
+
+def fetch_sql_result(stmt, connection_string): 
+    conn = pyodbc.connect(connection_string)
     cursor = conn.cursor()
     cursor.execute(stmt)
 
@@ -643,3 +745,12 @@ def fetch_sql_result(stmt):
         data.append(row)
    
     return data
+
+def fetch_scalar(stmt, connection_string): 
+    conn = pyodbc.connect(connection_string)
+    cursor = conn.cursor()
+    cursor.execute(stmt)
+    row=cursor.fetchone()
+    if row is not None:
+        return row[0]
+    return None
